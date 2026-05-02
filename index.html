@@ -24,20 +24,39 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* CALENDAR HEADER FIX */
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
+        /* CALENDAR HEADER - MOBILE FIX */
+        .calendar-header { margin-bottom: 15px; }
         
-        /* Enlarged touch target for mobile */
-        .date-selector-btn { 
-            display: flex; 
-            flex-direction: column; 
-            cursor: pointer; 
-            padding: 5px;
-            border-radius: 8px;
-            active: background-color: rgba(255,255,255,0.05);
+        .date-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
         }
 
-        .month-label { color: var(--accent); font-weight: bold; font-size: 18px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+        /* This makes the actual date text look pretty */
+        .month-label { 
+            color: var(--accent); 
+            font-weight: bold; 
+            font-size: 22px; 
+            text-transform: uppercase; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            pointer-events: none; /* Let taps pass through to the input */
+        }
+
+        /* This sits invisibly on top of the text to catch the tap */
+        #hiddenDatePicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            border: none;
+            -webkit-appearance: none;
+        }
         
         .scroll-calendar { 
             display: flex; gap: 12px; padding: 10px 0 20px 0;
@@ -86,14 +105,14 @@
 
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
-        <div class="date-selector-btn" onclick="triggerDatePicker()">
-            <span class="label-text">Select Date</span>
+        <span class="label-text">Select Date</span>
+        <div class="date-input-wrapper">
+            <!-- Native input is layered perfectly on top -->
+            <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)">
             <div class="month-label">
-                <span id="currentDateDisplay">Today</span> <span style="font-size: 12px; color: var(--text-sub);">▼</span>
+                <span id="currentDateDisplay">Today</span> <span style="font-size: 14px; color: var(--text-sub);">▼</span>
             </div>
         </div>
-        <!-- Native Date Picker (Hidden) -->
-        <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none; left: 0; top: 0; width: 50px;">
     </div>
 
     <div class="scroll-calendar" id="weekBar"></div>
@@ -165,19 +184,6 @@ const splitExercises = {
     'Pull': ['Lat Pulldown', 'T-Bar Row', 'Low Row', 'Bicep Curls', 'Reverse Curls'],
     'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL', 'Abductors', 'Calf Raises']
 };
-
-/* IMPROVED MOBILE TRIGGER */
-function triggerDatePicker() {
-    const input = document.getElementById('hiddenDatePicker');
-    input.value = selectedDate.toISOString().split('T')[0];
-    
-    // Attempt multiple ways to trigger the native picker
-    if (typeof input.showPicker === 'function') {
-        input.showPicker();
-    } else {
-        input.click();
-    }
-}
 
 function jumpToSpecificDate(val) {
     if(!val) return;
