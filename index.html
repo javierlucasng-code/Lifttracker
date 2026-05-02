@@ -1,58 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<style>
-    :root { 
-        --bg: #090a0f; --card: #161b22; --accent: #00f2fe; --text-main: #f0f6fc; 
-        --text-sub: #8b949e; --border: #30363d; --input-bg: #0d1117; --danger: #ff4d4d; --success: #2ea44f; --gold: #ffd700; --warning: #e3b341;
-    }
-    body { 
-        margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text-main); 
-        padding-bottom: calc(100px + env(safe-area-inset-bottom)); overflow-x: hidden; 
-    }
-
-    .screen { padding: 20px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.2s ease; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .navbar { 
-        position: fixed; bottom: 0; width: 100%; display: flex; background: rgba(13, 17, 23, 0.95); 
-        backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding-top: 15px;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom)); justify-content: space-around; z-index: 1000; 
-    }
-    .nav-item { color: #484f58; font-size: 26px; cursor: pointer; flex: 1; text-align: center; }
-    .nav-item.active { color: var(--accent); filter: drop-shadow(0 0 5px var(--accent)); }
-
-    select, input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-    .btn-primary { background: var(--accent); color: #000; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 900; cursor: pointer; }
-    .btn-secondary { background: var(--card); color: white; border: 1px solid var(--border); width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 10px; }
-
-    #exportReminder { background: rgba(227, 179, 65, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 12px; margin-bottom: 15px; display: none; align-items: center; justify-content: space-between; font-size: 12px; }
-    #successToast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; z-index: 2000; }
-
-    .workout-card { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 15px; }
-    .vol-target-bar { height: 10px; background: var(--input-bg); border-radius: 5px; margin-top: 8px; overflow: hidden; border: 1px solid var(--border); }
-    .vol-progress { height: 100%; transition: width 0.3s ease; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Elite Tracker</title>
     
-    .heatmap-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .heat-cell { padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); background: var(--input-bg); }
-    .heat-label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    <!-- PWA & Mobile Optimization -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
 
-    .timer-container { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); text-align: center; }
-    #timerDisplay { font-family: monospace; font-size: 2.8rem; color: var(--accent); margin: 5px 0; font-weight: bold; }
-    .timer-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    <style>
+        :root { 
+            --bg: #090a0f; --card: #161b22; --accent: #00f2fe; --text-main: #f0f6fc; 
+            --text-sub: #8b949e; --border: #30363d; --input-bg: #0d1117; --danger: #ff4d4d; --success: #2ea44f; --gold: #ffd700; --warning: #e3b341;
+        }
+        body { 
+            margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text-main); 
+            padding-bottom: calc(100px + env(safe-area-inset-bottom)); overflow-x: hidden; 
+        }
 
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-    .cal-date { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; cursor: pointer; position: relative; }
-    .has-workout::after { content: ""; position: absolute; bottom: 4px; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
-    .selected-date { background: var(--accent); color: #000; font-weight: bold; }
+        .screen { padding: 20px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    canvas { background: var(--card); border-radius: 20px; border: 1px solid var(--border); width: 100%; height: 220px; margin-top: 15px; }
-    .toggle-container { display: flex; background: var(--input-bg); border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
-    .toggle-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-sub); }
-    .toggle-btn.active { background: var(--card); color: var(--accent); }
-</style>
+        .navbar { 
+            position: fixed; bottom: 0; width: 100%; display: flex; background: rgba(13, 17, 23, 0.95); 
+            backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding-top: 15px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom)); justify-content: space-around; z-index: 1000; 
+        }
+        .nav-item { color: #484f58; font-size: 26px; cursor: pointer; flex: 1; text-align: center; }
+        .nav-item.active { color: var(--accent); filter: drop-shadow(0 0 5px var(--accent)); }
+
+        select, input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
+        .btn-primary { background: var(--accent); color: #000; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 900; cursor: pointer; }
+        .btn-secondary { background: var(--card); color: white; border: 1px solid var(--border); width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 10px; }
+
+        #exportReminder { background: rgba(227, 179, 65, 0.1); border: 1px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 12px; margin-bottom: 15px; display: none; align-items: center; justify-content: space-between; font-size: 12px; }
+        #successToast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; z-index: 2000; }
+
+        .workout-card { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .vol-target-bar { height: 10px; background: var(--input-bg); border-radius: 5px; margin-top: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .vol-progress { height: 100%; transition: width 0.3s ease; }
+        
+        .heatmap-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .heat-cell { padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); background: var(--input-bg); }
+        .heat-label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+        .timer-container { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); text-align: center; }
+        #timerDisplay { font-family: monospace; font-size: 2.8rem; color: var(--accent); margin: 5px 0; font-weight: bold; }
+        .timer-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .cal-date { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; cursor: pointer; position: relative; }
+        .has-workout::after { content: ""; position: absolute; bottom: 4px; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+        .selected-date { background: var(--accent); color: #000; font-weight: bold; }
+
+        canvas { background: var(--card); border-radius: 20px; border: 1px solid var(--border); width: 100%; height: 220px; margin-top: 15px; }
+        .toggle-container { display: flex; background: var(--input-bg); border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .toggle-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-sub); }
+        .toggle-btn.active { background: var(--card); color: var(--accent); }
+    </style>
 </head>
 <body>
 
@@ -128,7 +136,7 @@
     <div class="workout-card">
         <p style="margin-top:0; font-size:12px; color:var(--text-sub);">EXPORT REMINDER FREQUENCY</p>
         <select id="reminderInterval" onchange="saveReminderInterval()">
-            <option value="30000">30 Seconds (Test Mode)</option>
+            <option value="30000">30 Seconds (Test)</option>
             <option value="604800000">7 Days</option>
             <option value="1296000000" selected>15 Days</option>
             <option value="2592000000">30 Days</option>
@@ -152,14 +160,13 @@
 let calDate = new Date(), selectedDateStr = new Date().toDateString();
 let timeLeft = 0, timerInterval = null, currentRoutine = 'Push', statsRoutine = 'Push';
 
-// UPDATED EXERCISE LIST
+// Your Updated Exercise List
 const splitExercises = {
     'Push': ['Flat Bench Press', 'Incline DB Press', 'Incline Smith Press', 'Single-Arm Tricep Extension', 'Overhead Tricep Extension', 'Ovehead Press'],
     'Pull': ['Lat Pulldown', 'T-Bar Row', 'Iso-Lateral Low Row', 'Bicep Curls', 'Single Arm Reverse Curls', 'Rear-Delt Flies'],
     'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL', 'Abductors', 'Calf Raises', 'ABs']
 };
 
-// --- REMINDER LOGIC ---
 function saveReminderInterval() {
     localStorage.setItem('reminderInterval', document.getElementById('reminderInterval').value);
     checkExportReminder();
@@ -170,12 +177,7 @@ function checkExportReminder() {
     const interval = parseInt(localStorage.getItem('reminderInterval')) || 1296000000;
     const reminderBar = document.getElementById('exportReminder');
     if(document.getElementById('reminderInterval')) document.getElementById('reminderInterval').value = interval;
-
-    if (!last) {
-        localStorage.setItem('lastExportDate', new Date().getTime());
-        return;
-    }
-
+    if (!last) { localStorage.setItem('lastExportDate', new Date().getTime()); return; }
     const diff = new Date().getTime() - parseInt(last);
     reminderBar.style.display = (diff >= interval) ? 'flex' : 'none';
 }
@@ -188,7 +190,6 @@ function exportData() {
     checkExportReminder();
 }
 
-// --- WORKOUT LOGIC ---
 function addSetRow() {
     const div = document.createElement('div');
     div.style = "display:grid; grid-template-columns: 1fr 1fr 40px; gap: 10px; margin-bottom: 10px;";
@@ -214,21 +215,16 @@ function saveWorkout() {
     updateGhostStats(); updateHeatmap();
 }
 
-// --- SYNCED DROPDOWNS ---
 function updateExerciseDropdowns() {
     const isStats = document.getElementById('statsScreen').style.display === 'block';
     const routine = isStats ? statsRoutine : currentRoutine;
     const list = splitExercises[routine];
     const target = isStats ? 'statsExSelect' : 'exSelect';
-    
     const dropdown = document.getElementById(target);
     dropdown.innerHTML = list.map(e => `<option value="${e}">${e}</option>`).join('');
-    
-    if(isStats) renderAnalytics();
-    else updateGhostStats();
+    if(isStats) renderAnalytics(); else updateGhostStats();
 }
 
-// --- HEATMAP & VOLUME ---
 function updateHeatmap() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const container = document.getElementById('freshnessHeatmap'); container.innerHTML = '';
@@ -253,14 +249,12 @@ function updateWeeklyVolume() {
     });
 }
 
-// --- ANALYTICS ---
 function renderAnalytics() {
     const ex = document.getElementById('statsExSelect').value;
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]').filter(l => l.name === ex).sort((a,b) => new Date(a.date) - new Date(b.date));
     const canvas = document.getElementById('drilldownChart'); const ctx = canvas.getContext('2d');
     canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    
     if(!db.length) return;
     const weights = db.map(l => Math.max(...l.sets.map(s => s.kg)));
     ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 3; ctx.beginPath();
@@ -272,7 +266,6 @@ function renderAnalytics() {
     ctx.stroke();
 }
 
-// --- NAVIGATION & INIT ---
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -284,19 +277,8 @@ function showScreen(id) {
     document.querySelectorAll('.nav-item')[map[id]].classList.add('active');
 }
 
-function setRoutine(name, el) { 
-    currentRoutine = name; 
-    document.querySelectorAll('.ppl').forEach(b => b.classList.remove('active')); 
-    el.classList.add('active'); 
-    updateExerciseDropdowns(); 
-}
-
-function setStatsRoutine(name, el) { 
-    statsRoutine = name; 
-    document.querySelectorAll('.stat-ppl').forEach(b => b.classList.remove('active')); 
-    el.classList.add('active'); 
-    updateExerciseDropdowns(); 
-}
+function setRoutine(name, el) { currentRoutine = name; document.querySelectorAll('.ppl').forEach(b => b.classList.remove('active')); el.classList.add('active'); updateExerciseDropdowns(); }
+function setStatsRoutine(name, el) { statsRoutine = name; document.querySelectorAll('.stat-ppl').forEach(b => b.classList.remove('active')); el.classList.add('active'); updateExerciseDropdowns(); }
 
 function renderCalendar() {
     const grid = document.getElementById('calGrid');
@@ -344,6 +326,12 @@ function toggleTimer() {
             else { resetTimer(); if(navigator.vibrate) navigator.vibrate([500,200,500]); }
         }, 1000);
     }
+}
+
+// SERVICE WORKER REGISTRATION (PWA Support)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => console.log("Service Worker Registered"));
 }
 
 updateExerciseDropdowns(); updateHeatmap(); addSetRow(); checkExportReminder();
