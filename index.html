@@ -12,6 +12,8 @@
             --text-sub: #8b949e; --border: #333333; 
             --input-bg: #0a0a0a; --danger: #ff4d4d; --success: #00ff41; --warning: #e3b341;
             --glass-bg: rgba(15, 15, 15, 0.85);
+            --pull: #0088ff;
+            --legs: #ff4d4d;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -80,6 +82,40 @@
         .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); width: calc(33.33% - 4px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
         .pos-push { transform: translateX(0); } .pos-pull { transform: translateX(100%); } .pos-legs { transform: translateX(200%); }
 
+        /* ANALYTICS SUB-NAV */
+        .stats-nav { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .stats-nav::-webkit-scrollbar { display: none; }
+        .stats-nav-item { 
+            padding: 8px 16px; background: var(--card); border: 1px solid var(--border); 
+            border-radius: 20px; font-size: 11px; font-weight: bold; color: var(--text-sub); 
+            white-space: nowrap; cursor: pointer; transition: 0.2s;
+        }
+        .stats-nav-item.active { background: var(--selected-pill); border-color: var(--accent); color: var(--accent); }
+
+        /* HISTORY STYLES */
+        .history-month-header {
+            color: var(--accent);
+            font-size: 18px;
+            font-weight: 900;
+            margin: 25px 0 10px 0;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+        .history-split-group { margin-bottom: 15px; }
+        .history-split-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .history-split-label::after { content: ''; flex: 1; height: 1px; background: #222; }
+
         /* NAVBAR */
         .navbar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 400px; display: flex; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; padding: 12px 0; justify-content: space-around; z-index: 2000; }
         .nav-item { color: #555; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
@@ -126,10 +162,8 @@
     <div id="logTable"></div>
     <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
 
-    <!-- LOG SESSION IS NOW ABOVE TIMER -->
     <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
 
-    <!-- REST TIMER WITH RESET & +1MIN -->
     <div class="workout-card">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
             <div>
@@ -157,28 +191,40 @@
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent); margin-bottom: 20px;">Performance</h2>
     
+    <div class="stats-nav">
+        <div class="stats-nav-item active" onclick="filterStats('All', this)">All Splits</div>
+        <div class="stats-nav-item" onclick="filterStats('Push', this)">Push</div>
+        <div class="stats-nav-item" onclick="filterStats('Pull', this)">Pull</div>
+        <div class="stats-nav-item" onclick="filterStats('Legs', this)">Legs</div>
+    </div>
+
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
         <div class="workout-card" style="margin-bottom: 0; text-align: center;">
-            <span class="label-text">Total Volume (7d)</span>
+            <span class="label-text" id="volHeader">Total Volume (7d)</span>
             <div id="totalVolLabel" style="font-size: 20px; font-weight: 900; color: var(--text-main);">0kg</div>
         </div>
         <div class="workout-card" style="margin-bottom: 0; text-align: center;">
-            <span class="label-text">Sessions (7d)</span>
+            <span class="label-text" id="sessionHeader">Sessions (7d)</span>
             <div id="sessionCountLabel" style="font-size: 20px; font-weight: 900; color: var(--accent);">0</div>
         </div>
     </div>
 
     <div class="workout-card">
+        <span class="label-text">Volume by Split (7d)</span>
+        <div style="height: 180px;"><canvas id="splitVolumeChart"></canvas></div>
+    </div>
+
+    <div class="workout-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <span class="label-text" style="margin:0">Volume Trend</span>
-            <span style="font-size: 10px; background: var(--selected-pill); color: var(--accent); padding: 2px 8px; border-radius: 10px;">Weekly (kg)</span>
+            <span id="trendLabel" style="font-size: 10px; background: var(--selected-pill); color: var(--accent); padding: 2px 8px; border-radius: 10px;">Showing All</span>
         </div>
-        <div style="height: 220px;"><canvas id="progressChart"></canvas></div>
+        <div style="height: 200px;"><canvas id="progressChart"></canvas></div>
     </div>
 
     <div class="workout-card">
         <span class="label-text">Split Distribution</span>
-        <div style="height: 180px;"><canvas id="distributionChart"></canvas></div>
+        <div style="height: 160px;"><canvas id="distributionChart"></canvas></div>
     </div>
 </div>
 
@@ -206,6 +252,8 @@ let selectedDate = new Date();
 let currentRoutine = 'Push';
 let myChart = null;
 let distChart = null;
+let splitVolChart = null;
+let currentStatFilter = 'All';
 let timeLeft = 0;
 let timerRunning = false;
 let timerInterval;
@@ -216,7 +264,6 @@ const splitExercises = {
     'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL', 'Abdductors', 'Calf Raises', 'Abs']
 };
 
-// CORE SCREEN NAVIGATION
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -289,7 +336,7 @@ function saveWorkout() {
     document.getElementById('logTable').innerHTML = ""; addSetRow(); updateHeatmap(); renderWeekBar(); alert("Logged!");
 }
 
-// REST TIMER LOGIC
+// REST TIMER
 function updateTimerDisplay() {
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
@@ -299,9 +346,7 @@ function toggleTimer() {
     const btn = document.getElementById('timerToggle');
     if (timerRunning) {
         clearInterval(timerInterval);
-        btn.innerText = "START";
-        btn.style.borderColor = "var(--accent)";
-        btn.style.color = "var(--accent)";
+        btn.innerText = "START"; btn.style.borderColor = "var(--accent)"; btn.style.color = "var(--accent)";
     } else {
         if (timeLeft <= 0) timeLeft = 90;
         updateTimerDisplay();
@@ -309,71 +354,116 @@ function toggleTimer() {
             if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); } 
             else { clearInterval(timerInterval); alert("Rest Finished!"); timerRunning = false; btn.innerText = "START"; }
         }, 1000);
-        btn.innerText = "STOP";
-        btn.style.borderColor = "var(--danger)";
-        btn.style.color = "var(--danger)";
+        btn.innerText = "STOP"; btn.style.borderColor = "var(--danger)"; btn.style.color = "var(--danger)";
     }
     timerRunning = !timerRunning;
 }
 function adjustTimer(amt) { timeLeft = Math.max(0, timeLeft + amt); updateTimerDisplay(); }
-function resetTimer() {
-    clearInterval(timerInterval);
-    timerRunning = false;
-    timeLeft = 0;
-    updateTimerDisplay();
-    const btn = document.getElementById('timerToggle');
-    btn.innerText = "START";
-    btn.style.borderColor = "var(--accent)";
-    btn.style.color = "var(--accent)";
+function resetTimer() { clearInterval(timerInterval); timerRunning = false; timeLeft = 0; updateTimerDisplay(); document.getElementById('timerToggle').innerText = "START"; }
+
+// HISTORY - UPDATED FOR SPLITS & MONTHS
+function renderHistory() {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const historyContainer = document.getElementById('historyLogs');
+    historyContainer.innerHTML = '';
+    if (db.length === 0) { historyContainer.innerHTML = '<p style="color:var(--text-sub); text-align:center;">No sessions logged yet.</p>'; return; }
+
+    const sortedLogs = db.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const groups = {};
+    sortedLogs.forEach(log => {
+        const date = new Date(log.date);
+        const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        if (!groups[monthYear]) groups[monthYear] = { Push: [], Pull: [], Legs: [] };
+        if (groups[monthYear][log.routine]) groups[monthYear][log.routine].push(log);
+    });
+
+    for (const [month, splits] of Object.entries(groups)) {
+        const monthHeader = document.createElement('div');
+        monthHeader.className = 'history-month-header';
+        monthHeader.innerText = month;
+        historyContainer.appendChild(monthHeader);
+
+        ['Push', 'Pull', 'Legs'].forEach(splitName => {
+            const splitLogs = splits[splitName];
+            if (splitLogs.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'history-split-group';
+                let color = splitName === 'Pull' ? "var(--pull)" : (splitName === 'Legs' ? "var(--legs)" : "var(--accent)");
+                groupDiv.innerHTML = `<div class="history-split-label" style="color:${color}">${splitName}</div>`;
+                splitLogs.forEach(l => {
+                    const logDate = new Date(l.date).toLocaleDateString(undefined, { day: 'numeric', weekday: 'short' });
+                    groupDiv.innerHTML += `
+                        <div class="workout-card">
+                            <span class="label-text">${logDate}</span>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <b style="font-size:15px;">${l.name}</b> 
+                                <span style="font-size:12px; color:var(--text-sub); background:var(--input-bg); padding:4px 8px; border-radius:6px;">${l.sets.length} Sets</span>
+                            </div>
+                        </div>`;
+                });
+                historyContainer.appendChild(groupDiv);
+            }
+        });
+    }
 }
 
-// ANALYTICS & HISTORY
+// ANALYTICS
+function filterStats(split, element) {
+    currentStatFilter = split;
+    document.querySelectorAll('.stats-nav-item').forEach(i => i.classList.remove('active'));
+    element.classList.add('active');
+    renderStats();
+}
+
 function renderStats() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const dailyVolume = {};
     const splitCounts = { Push: 0, Pull: 0, Legs: 0 };
-    let totalVol7d = 0;
+    const splitVolumes = { Push: 0, Pull: 0, Legs: 0 };
+    let filteredVol7d = 0;
     const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     db.forEach(log => {
         const logDate = new Date(log.date);
         const vol = log.sets.reduce((s, set) => s + (set.kg * set.reps), 0);
         const d = logDate.toLocaleDateString();
-        dailyVolume[d] = (dailyVolume[d] || 0) + vol;
-        if (logDate >= sevenDaysAgo) {
-            totalVol7d += vol;
-            if (splitCounts.hasOwnProperty(log.routine)) splitCounts[log.routine]++;
+        const matchesFilter = (currentStatFilter === 'All' || log.routine === currentStatFilter);
+        if (splitCounts.hasOwnProperty(log.routine)) splitCounts[log.routine]++;
+        if (matchesFilter) {
+            dailyVolume[d] = (dailyVolume[d] || 0) + vol;
+            if (logDate >= sevenDaysAgo) {
+                filteredVol7d += vol;
+                if (splitVolumes.hasOwnProperty(log.routine)) splitVolumes[log.routine] += vol;
+            }
         }
     });
 
-    document.getElementById('totalVolLabel').innerText = totalVol7d.toLocaleString() + 'kg';
+    document.getElementById('volHeader').innerText = currentStatFilter === 'All' ? 'Total Volume (7d)' : `${currentStatFilter} Volume (7d)`;
+    document.getElementById('totalVolLabel').innerText = filteredVol7d.toLocaleString() + 'kg';
     document.getElementById('sessionCountLabel').innerText = Object.keys(dailyVolume).filter(d => new Date(d) >= sevenDaysAgo).length;
+    document.getElementById('trendLabel').innerText = `Showing ${currentStatFilter}`;
 
-    const sortedDates = Object.keys(dailyVolume).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(0, 255, 65, 0.3)');
-    gradient.addColorStop(1, 'rgba(0, 255, 65, 0)');
-
-    if(myChart) myChart.destroy();
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: sortedDates.map(d => d.split('/')[0] + '/' + d.split('/')[1]),
-            datasets: [{ data: sortedDates.map(d => dailyVolume[d]), borderColor: '#00ff41', borderWidth: 3, tension: 0.4, fill: true, backgroundColor: gradient }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#222' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } } }
+    if(splitVolChart) splitVolChart.destroy();
+    splitVolChart = new Chart(document.getElementById('splitVolumeChart').getContext('2d'), {
+        type: 'bar',
+        data: { labels: ['Push', 'Pull', 'Legs'], datasets: [{ data: [splitVolumes.Push, splitVolumes.Pull, splitVolumes.Legs], backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'], borderRadius: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#8b949e', font: { size: 10 } } }, x: { grid: { display: false }, ticks: { color: '#f0f6fc', font: { weight: 'bold' } } } } }
     });
 
-    const ctx2 = document.getElementById('distributionChart').getContext('2d');
+    const sortedDates = Object.keys(dailyVolume).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
+    if(myChart) myChart.destroy();
+    let lineColor = currentStatFilter === 'Pull' ? '#0088ff' : (currentStatFilter === 'Legs' ? '#ff4d4d' : '#00ff41');
+    myChart = new Chart(document.getElementById('progressChart').getContext('2d'), {
+        type: 'line',
+        data: { labels: sortedDates.map(d => d.split('/')[0] + '/' + d.split('/')[1]), datasets: [{ data: sortedDates.map(d => dailyVolume[d]), borderColor: lineColor, borderWidth: 3, tension: 0.4, fill: true, backgroundColor: lineColor + '1A' }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } } }
+    });
+
     if(distChart) distChart.destroy();
-    distChart = new Chart(ctx2, {
+    distChart = new Chart(document.getElementById('distributionChart').getContext('2d'), {
         type: 'doughnut',
-        data: {
-            labels: ['Push', 'Pull', 'Legs'],
-            datasets: [{ data: [splitCounts.Push, splitCounts.Pull, splitCounts.Legs], backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'], borderWidth: 0 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { color: '#8b949e', font: { size: 12 } } } } }
+        data: { labels: ['Push', 'Pull', 'Legs'], datasets: [{ data: [splitCounts.Push, splitCounts.Pull, splitCounts.Legs], backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'right', labels: { color: '#8b949e', font: { size: 11 } } } } }
     });
 }
 
@@ -391,23 +481,13 @@ function updateHeatmap() {
     });
 }
 
-function renderHistory() {
-    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-    document.getElementById('historyLogs').innerHTML = db.slice().reverse().map(l => `<div class="workout-card"><span class="label-text">${new Date(l.date).toLocaleDateString()} — ${l.routine}</span><div style="display:flex; justify-content:space-between;"><b>${l.name}</b> <span>${l.sets.length} Sets</span></div></div>`).join('');
-}
-
-// DATA SETTINGS
 function exportData() { const b = new Blob([localStorage.getItem('gymLogs') || '[]'], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup.json`; a.click(); }
 function importData(e) {
     const f = e.target.files[0]; if(!f) return;
-    const r = new FileReader(); r.onload = (ev) => {
-        localStorage.setItem('gymLogs', ev.target.result);
-        location.reload();
-    }; r.readAsText(f);
+    const r = new FileReader(); r.onload = (ev) => { localStorage.setItem('gymLogs', ev.target.result); location.reload(); }; r.readAsText(f);
 }
 function resetDatabase() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
 
-// INITIALIZE
 renderWeekBar(); updateDropdown(); addSetRow(); updateHeatmap();
 </script>
 </body>
