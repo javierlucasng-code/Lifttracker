@@ -24,6 +24,7 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* CALENDAR SECTION */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
         .month-label { color: var(--accent); font-weight: bold; font-size: 18px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
         
@@ -43,6 +44,7 @@
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
 
+        /* UI ELEMENTS */
         .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
         .timer-display { font-size: 22px; font-weight: 900; color: var(--accent); font-family: monospace; }
         .timer-controls { display: flex; gap: 4px; }
@@ -74,12 +76,14 @@
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
         <div style="display: flex; flex-direction: column;">
-            <span class="label-text">Workout Date</span>
+            <span class="label-text">Select Date</span>
+            <!-- Tapping this opens the calendar -->
             <div class="month-label" onclick="triggerDatePicker()" style="cursor: pointer;">
-                <span id="currentDateDisplay">Today</span> <span style="font-size: 12px;">▼</span>
+                <span id="currentDateDisplay">Today</span> <span style="font-size: 12px; color: var(--text-sub);">▼</span>
             </div>
         </div>
-        <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none;">
+        <!-- Native Date Picker (Hidden) -->
+        <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none; left: 0; width: 100px;">
     </div>
 
     <div class="scroll-calendar" id="weekBar"></div>
@@ -152,25 +156,52 @@ const splitExercises = {
     'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL', 'Abductors', 'Calf Raises']
 };
 
-function triggerDatePicker() { document.getElementById('hiddenDatePicker').showPicker(); }
-function jumpToSpecificDate(val) { if(!val) return; selectedDate = new Date(val); renderWeekBar(); }
+/* MANUAL DATE PICKER FUNCTIONS */
+function triggerDatePicker() {
+    const input = document.getElementById('hiddenDatePicker');
+    // Ensure input matches the selected date format YYYY-MM-DD
+    input.value = selectedDate.toISOString().split('T')[0];
+    input.showPicker();
+}
+
+function jumpToSpecificDate(val) {
+    if(!val) return;
+    // Handle date as local time to avoid timezone shifts
+    const parts = val.split('-');
+    selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    renderWeekBar();
+}
 
 function renderWeekBar() {
     const weekBar = document.getElementById('weekBar');
     const dateDisplay = document.getElementById('currentDateDisplay');
     weekBar.innerHTML = '';
+    
+    // Update the main label
     dateDisplay.innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    // Generate the sliding row (3 days before, 10 days after)
     const start = new Date(selectedDate);
     start.setDate(selectedDate.getDate() - 3);
+    
     for (let i = 0; i < 14; i++) {
-        const day = new Date(start); day.setDate(start.getDate() + i);
+        const day = new Date(start);
+        day.setDate(start.getDate() + i);
         const isSelected = day.toDateString() === selectedDate.toDateString();
+        
         const pill = document.createElement('div');
         pill.className = `date-pill ${isSelected ? 'active' : ''}`;
         pill.onclick = () => { selectedDate = day; renderWeekBar(); };
-        pill.innerHTML = `<span class="label-text" style="margin:0; font-size:10px;">${day.toLocaleDateString('en-US', { weekday: 'short' })}</span><div class="date-circle">${day.getDate()}</div>`;
+        
+        pill.innerHTML = `
+            <span class="label-text" style="margin:0; font-size:10px;">${day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+            <div class="date-circle">${day.getDate()}</div>
+        `;
         weekBar.appendChild(pill);
-        if(isSelected) setTimeout(() => pill.scrollIntoView({ behavior: 'smooth', inline: 'center' }), 50);
+        
+        if(isSelected) {
+            setTimeout(() => pill.scrollIntoView({ behavior: 'smooth', inline: 'center' }), 50);
+        }
     }
 }
 
@@ -198,19 +229,24 @@ function saveWorkout() {
         kg: parseFloat(r.querySelector('.ki').value) || 0, 
         reps: parseInt(r.querySelector('.ri').value) || 0
     })).filter(s => s.kg > 0);
+    
     if(!sets.length) return;
+    
     let db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     db.push({ name: ex, routine: currentRoutine, date: selectedDate.toISOString(), sets });
     localStorage.setItem('gymLogs', JSON.stringify(db));
-    document.getElementById('logTable').innerHTML = ""; addSetRow();
+    
+    document.getElementById('logTable').innerHTML = ""; 
+    addSetRow();
     updateHeatmap();
-    alert(`Logged ${ex}!`);
+    alert(`Logged to ${selectedDate.toLocaleDateString()}`);
 }
 
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(id + 'Screen').style.display = 'block';
+    
     const navItems = document.querySelectorAll('.nav-item');
     if(id === 'workout') navItems[0].classList.add('active');
     if(id === 'history') { navItems[1].classList.add('active'); renderHistory(); }
@@ -233,7 +269,6 @@ function renderStats() {
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    // Group volume by Date
     const dailyVolume = {};
     db.forEach(log => {
         const d = new Date(log.date).toLocaleDateString();
