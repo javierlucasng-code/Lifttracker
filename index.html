@@ -24,8 +24,19 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* CALENDAR SECTION */
+        /* CALENDAR HEADER FIX */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
+        
+        /* Enlarged touch target for mobile */
+        .date-selector-btn { 
+            display: flex; 
+            flex-direction: column; 
+            cursor: pointer; 
+            padding: 5px;
+            border-radius: 8px;
+            active: background-color: rgba(255,255,255,0.05);
+        }
+
         .month-label { color: var(--accent); font-weight: bold; font-size: 18px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
         
         .scroll-calendar { 
@@ -75,15 +86,14 @@
 
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
-        <div style="display: flex; flex-direction: column;">
+        <div class="date-selector-btn" onclick="triggerDatePicker()">
             <span class="label-text">Select Date</span>
-            <!-- Tapping this opens the calendar -->
-            <div class="month-label" onclick="triggerDatePicker()" style="cursor: pointer;">
+            <div class="month-label">
                 <span id="currentDateDisplay">Today</span> <span style="font-size: 12px; color: var(--text-sub);">▼</span>
             </div>
         </div>
         <!-- Native Date Picker (Hidden) -->
-        <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none; left: 0; width: 100px;">
+        <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none; left: 0; top: 0; width: 50px;">
     </div>
 
     <div class="scroll-calendar" id="weekBar"></div>
@@ -156,17 +166,21 @@ const splitExercises = {
     'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL', 'Abductors', 'Calf Raises']
 };
 
-/* MANUAL DATE PICKER FUNCTIONS */
+/* IMPROVED MOBILE TRIGGER */
 function triggerDatePicker() {
     const input = document.getElementById('hiddenDatePicker');
-    // Ensure input matches the selected date format YYYY-MM-DD
     input.value = selectedDate.toISOString().split('T')[0];
-    input.showPicker();
+    
+    // Attempt multiple ways to trigger the native picker
+    if (typeof input.showPicker === 'function') {
+        input.showPicker();
+    } else {
+        input.click();
+    }
 }
 
 function jumpToSpecificDate(val) {
     if(!val) return;
-    // Handle date as local time to avoid timezone shifts
     const parts = val.split('-');
     selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
     renderWeekBar();
@@ -177,10 +191,8 @@ function renderWeekBar() {
     const dateDisplay = document.getElementById('currentDateDisplay');
     weekBar.innerHTML = '';
     
-    // Update the main label
     dateDisplay.innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     
-    // Generate the sliding row (3 days before, 10 days after)
     const start = new Date(selectedDate);
     start.setDate(selectedDate.getDate() - 3);
     
