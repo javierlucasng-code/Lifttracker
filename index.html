@@ -24,39 +24,11 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* CALENDAR HEADER - MOBILE FIX */
+        /* CALENDAR HEADER */
         .calendar-header { margin-bottom: 15px; }
-        
-        .date-input-wrapper {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
-
-        /* This makes the actual date text look pretty */
-        .month-label { 
-            color: var(--accent); 
-            font-weight: bold; 
-            font-size: 22px; 
-            text-transform: uppercase; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px;
-            pointer-events: none; /* Let taps pass through to the input */
-        }
-
-        /* This sits invisibly on top of the text to catch the tap */
-        #hiddenDatePicker {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            border: none;
-            -webkit-appearance: none;
-        }
+        .date-input-wrapper { position: relative; display: inline-block; cursor: pointer; }
+        .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; pointer-events: none; }
+        #hiddenDatePicker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; -webkit-appearance: none; }
         
         .scroll-calendar { 
             display: flex; gap: 12px; padding: 10px 0 20px 0;
@@ -66,13 +38,25 @@
         .scroll-calendar::-webkit-scrollbar { display: none; }
 
         .date-pill {
-            min-width: 55px; height: 80px; background: var(--card); border-radius: 20px;
+            min-width: 55px; height: 85px; background: var(--card); border-radius: 20px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; flex-shrink: 0; border: 1px solid var(--border); transition: 0.2s;
-            scroll-snap-align: start;
+            scroll-snap-align: start; position: relative;
         }
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
+
+        /* GYM DAY HIGHLIGHT */
+        .date-pill.has-workout::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+        }
 
         /* UI ELEMENTS */
         .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
@@ -107,7 +91,6 @@
     <div class="calendar-header">
         <span class="label-text">Select Date</span>
         <div class="date-input-wrapper">
-            <!-- Native input is layered perfectly on top -->
             <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)">
             <div class="month-label">
                 <span id="currentDateDisplay">Today</span> <span style="font-size: 14px; color: var(--text-sub);">▼</span>
@@ -195,6 +178,7 @@ function jumpToSpecificDate(val) {
 function renderWeekBar() {
     const weekBar = document.getElementById('weekBar');
     const dateDisplay = document.getElementById('currentDateDisplay');
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     weekBar.innerHTML = '';
     
     dateDisplay.innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -202,13 +186,16 @@ function renderWeekBar() {
     const start = new Date(selectedDate);
     start.setDate(selectedDate.getDate() - 3);
     
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 21; i++) {
         const day = new Date(start);
         day.setDate(start.getDate() + i);
         const isSelected = day.toDateString() === selectedDate.toDateString();
         
+        // Highlight logic: Check if any log matches this date
+        const hasWorkout = db.some(log => new Date(log.date).toDateString() === day.toDateString());
+        
         const pill = document.createElement('div');
-        pill.className = `date-pill ${isSelected ? 'active' : ''}`;
+        pill.className = `date-pill ${isSelected ? 'active' : ''} ${hasWorkout ? 'has-workout' : ''}`;
         pill.onclick = () => { selectedDate = day; renderWeekBar(); };
         
         pill.innerHTML = `
@@ -257,6 +244,7 @@ function saveWorkout() {
     document.getElementById('logTable').innerHTML = ""; 
     addSetRow();
     updateHeatmap();
+    renderWeekBar(); // Refresh highlights
     alert(`Logged to ${selectedDate.toLocaleDateString()}`);
 }
 
