@@ -3,320 +3,344 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Fitness Tracker Pro</title>
 <style>
     :root { 
-        --bg: #0b0d12; 
-        --card: #121722; 
-        --accent: #00c97b; 
-        --danger: #ff4757; 
-        --input-bg: #1a2030;
+        --bg: #090a0f; --card: #161b22; --accent: #00f2fe; --text-main: #f0f6fc; 
+        --text-sub: #8b949e; --border: #30363d; --input-bg: #0d1117; --danger: #ff4d4d;
     }
+    body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text-main); padding-bottom: 90px; overflow-x: hidden; }
+    .screen { padding: 20px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .navbar { position: fixed; bottom: 0; width: 100%; display: flex; background: #0d1117; border-top: 1px solid var(--border); padding: 15px 0; justify-content: space-around; z-index: 1000; }
+    .nav-item { color: #484f58; font-size: 24px; cursor: pointer; flex: 1; text-align: center; transition: 0.3s; }
+    .nav-item.active { color: var(--accent); filter: drop-shadow(0 0 5px var(--accent)); }
+
+    select, input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: white; margin-bottom: 15px; box-sizing: border-box; }
+    .btn-primary { background: var(--accent); color: #000; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 900; cursor: pointer; }
+    .btn-secondary { background: var(--card); color: white; border: 1px solid var(--border); width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 10px; }
+
+    /* Swipeable Row/Card Styling */
+    .set-row, .workout-card { transition: transform 0.3s ease, opacity 0.3s ease; touch-action: pan-y; }
+    .swiped-out { transform: translateX(-150%) !important; opacity: 0 !important; }
+
+    .timer-container { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); text-align: center; }
+    #timerDisplay { font-family: monospace; font-size: 2.8rem; color: var(--accent); margin: 5px 0; font-weight: bold; }
+    .timer-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+    .calendar-container { background: var(--card); border-radius: 20px; padding: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+    .cal-day-label { color: var(--text-sub); font-size: 10px; font-weight: bold; }
+    .cal-date { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; cursor: pointer; position: relative; }
+    .has-workout::after { content: ""; position: absolute; bottom: 4px; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+    .selected-date { background: var(--accent); color: #000; font-weight: bold; }
+
+    .toggle-container { display: flex; background: var(--input-bg); border-radius: 12px; padding: 4px; margin-bottom: 10px; border: 1px solid var(--border); }
+    .toggle-btn { flex: 1; border: none; padding: 8px; border-radius: 8px; font-size: 10px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-sub); }
+    .toggle-btn.active { background: var(--card); color: var(--accent); }
     
-    body { 
-        margin: 0; 
-        font-family: -apple-system, system-ui, sans-serif; 
-        background: var(--bg); 
-        color: white; 
-        padding-bottom: 80px; 
-    }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); padding: 15px; border-radius: 18px; border: 1px solid var(--border); }
+    .stat-label { font-size: 10px; color: var(--text-sub); display: block; text-transform: uppercase; }
+    .stat-val { font-size: 16px; font-weight: 800; color: var(--accent); }
 
-    .screen { padding: 15px; display: none; }
-    
-    /* UI Cards */
-    .card { 
-        background: var(--card); 
-        padding: 15px; 
-        border-radius: 12px; 
-        margin-bottom: 12px; 
-        border-left: 4px solid var(--accent);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
-    .row { 
-        display: grid; 
-        grid-template-columns: 30px 1fr 1fr 40px; 
-        gap: 8px; 
-        margin-bottom: 8px; 
-    }
-
-    input { 
-        width: 100%; 
-        padding: 10px 2px; 
-        background: var(--input-bg); 
-        border: 1px solid #2a3040; 
-        color: white; 
-        border-radius: 8px; 
-        text-align: center; 
-        font-size: 16px; 
-    }
-
-    select { 
-        width: 100%; 
-        padding: 12px; 
-        background: var(--input-bg); 
-        color: white; 
-        border: 1px solid var(--accent); 
-        border-radius: 10px; 
-        margin-bottom: 15px; 
-        font-size: 1rem;
-    }
-
-    /* Buttons */
-    button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; padding: 10px; }
-    .btn-save { background: var(--accent); color: black; width: 100%; font-size: 1rem; margin-top: 10px; }
-    .btn-add { width: 100%; background: #2a3040; color: white; margin-bottom: 5px; }
-
-    /* Navigation */
-    .navbar { 
-        position: fixed; 
-        bottom: 0; 
-        width: 100%; 
-        display: flex; 
-        justify-content: space-around; 
-        background: #111; 
-        padding: 15px 0; 
-        border-top: 1px solid #222;
-    }
-    .nav-item { color: #444; font-size: 24px; cursor: pointer; transition: 0.2s; }
-    .nav-item.active { color: var(--accent); }
-
-    /* Chart */
-    canvas { 
-        width: 100%; 
-        height: 200px; 
-        background: #000; 
-        border-radius: 8px; 
-        margin-top: 10px;
-    }
-    
-    #debug { font-size: 10px; color: #444; text-align: center; margin-top: 20px; }
+    canvas { background: var(--card); border-radius: 20px; border: 1px solid var(--border); width: 100%; height: 260px; margin-top: 10px; }
+    .weight-entry { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
 </style>
 </head>
 <body>
 
 <!-- WORKOUT SCREEN -->
-<div id="workoutScreen" class="screen" style="display: block;">
-    <h2>Log Workout</h2>
-    <select id="exSelect">
-         <option>Lat Pulldown</option>
-        <option>Iso-plate Loaded Low Row</option>
-        <option>T-Bar row</option>
-        <option>Cable Bicep Curl</option>
-        <option>Cable Reverse Curl</option>
-        <option>Rear Delts Flies</option>
-        <option>Forearms</option>
-    </select>
-    <div id="table"></div>
-    <button class="btn-add" onclick="addSetRow()">+ Add Set</button>
-    <button class="btn-save" onclick="saveWorkout()">💾 SAVE TO HISTORY</button>
+<div id="workoutScreen" class="screen">
+    <div class="timer-container">
+        <div id="timerDisplay">00:00</div>
+        <div class="timer-controls">
+            <button class="btn-secondary" onclick="addRest(30)">+30s</button>
+            <button class="btn-secondary" onclick="addRest(60)">+1m</button>
+            <button class="btn-secondary" style="color:var(--danger)" onclick="resetTimer()">RESET</button>
+        </div>
+        <button class="btn-primary" id="timerAction" onclick="toggleTimer()">START REST</button>
+    </div>
+    <select id="exSelect"></select>
+    <div id="logTable"></div>
+    <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
+    <button class="btn-primary" style="margin-top:20px" onclick="saveWorkout()">SAVE SESSION</button>
 </div>
 
 <!-- HISTORY SCREEN -->
 <div id="historyScreen" class="screen">
-    <div style="display:flex; justify-content:space-between; align-items:center">
-        <h2>History</h2>
-        <button onclick="wipeAllData()" style="background:none; color:var(--danger); font-size:11px">WIPE ALL</button>
+    <div class="calendar-container">
+        <div class="cal-header">
+            <button class="btn-secondary" style="width:auto; padding:5px 15px;" onclick="changeMonth(-1)"><</button>
+            <b id="calMonth">Month</b>
+            <button class="btn-secondary" style="width:auto; padding:5px 15px;" onclick="changeMonth(1)">></button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
     </div>
-    <div id="historyList"></div>
+    <h3 id="selectedDateText" style="font-size: 16px; color: var(--accent);">Today</h3>
+    <div id="dailyLogs"></div>
 </div>
 
 <!-- STATS SCREEN -->
-<div id="statsScreen" class="screen">
-    <h2>Progress</h2>
-    <div class="card">
-        <canvas id="progressChart"></canvas>
+<div id="statsScreen" class="screen" style="display: block;">
+    <select id="statsExSelect" onchange="renderAnalytics()"></select>
+    <div class="toggle-container">
+        <button class="toggle-btn m-t active" onclick="setMetric('Weights', this)">Weight</button>
+        <button class="toggle-btn m-t" onclick="setMetric('1RM', this)">1RM</button>
+        <button class="toggle-btn m-t" onclick="setMetric('Volume', this)">Volume</button>
     </div>
-    <p id="statsInfo" style="text-align:center; color:#777; font-size:13px"></p>
+    <div class="stats-row">
+        <div class="stat-card"><span class="stat-label">Best</span><span id="prVal" class="stat-val">0</span></div>
+        <div class="stat-card"><span class="stat-label">Average</span><span id="avgVal" class="stat-val">0</span></div>
+    </div>
+    <canvas id="drilldownChart"></canvas>
 </div>
 
-<!-- NAV BAR -->
+<!-- PROFILE SCREEN -->
+<div id="profileScreen" class="screen">
+    <h2 style="text-align:center;">Body Metrics</h2>
+    <div class="stat-card" style="margin-bottom:20px;">
+        <label class="stat-label">Log Weight (kg)</label>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <input type="number" id="bodyWeightInput" style="margin:0;" placeholder="00.0">
+            <button class="btn-primary" style="padding:10px; width:80px;" onclick="saveBodyMetric('weight')">LOG</button>
+        </div>
+    </div>
+    <h3 style="font-size:14px; color:var(--text-sub); margin-top:20px;">WEIGHT HISTORY</h3>
+    <div id="weightHistoryList" style="max-height: 250px; overflow-y: auto; background: var(--card); border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px;"></div>
+    <div style="margin-top:40px;">
+        <h3 style="font-size:14px; color:var(--text-sub);">DATA MANAGEMENT</h3>
+        <button class="btn-secondary" style="width:100%" onclick="exportData()">EXPORT BACKUP (JSON)</button>
+        <button class="btn-secondary" style="width:100%; border-color:var(--danger); color:var(--danger)" onclick="clearData()">WIPE ALL DATA</button>
+    </div>
+</div>
+
 <nav class="navbar">
-    <div class="nav-item active" onclick="show('workout')">🏋️</div>
-    <div class="nav-item" onclick="show('history')">💾</div>
-    <div class="nav-item" onclick="show('stats')">📊</div>
+    <div class="nav-item" onclick="showScreen('workout')">🏋️</div>
+    <div class="nav-item" onclick="showScreen('history')">📅</div>
+    <div class="nav-item active" onclick="showScreen('stats')">📊</div>
+    <div class="nav-item" onclick="showScreen('profile')">👤</div>
 </nav>
 
-<div id="debug">Ready</div>
-
 <script>
-// --- NAVIGATION LOGIC ---
-function show(id) {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    
-    document.getElementById(id + 'Screen').style.display = 'block';
-    
-    const navs = document.querySelectorAll('.nav-item');
-    if(id === 'workout') { navs[0].classList.add('active'); }
-    else if(id === 'history') { navs[1].classList.add('active'); renderHistory(); }
-    else if(id === 'stats') { navs[2].classList.add('active'); renderChart(); }
+let currentMetric = 'Weights', calDate = new Date(), selectedDateStr = new Date().toDateString();
+let timeLeft = 0, timerInterval = null;
+const exercises = ['Bench Press', 'Squat', 'Deadlift', 'OHP', 'Body Weight'];
+
+/* --- UTILITY: MAKE ELEMENT SWIPEABLE --- */
+function makeSwipeable(el, onConfirm) {
+    let startX = 0;
+    el.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    el.addEventListener('touchend', e => {
+        let diff = startX - e.changedTouches[0].clientX;
+        if (diff > 100) { 
+            if (onConfirm) {
+                if (confirm("Delete this entry?")) {
+                    el.classList.add('swiped-out');
+                    setTimeout(() => onConfirm(), 300);
+                }
+            } else {
+                el.classList.add('swiped-out');
+                setTimeout(() => el.remove(), 300);
+            }
+        }
+    });
 }
 
-// --- WORKOUT LOGIC ---
-function addSetRow(kg='', reps='') {
-    const table = document.getElementById('table');
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id + 'Screen').style.display = 'block';
+    if(id === 'history') renderCalendar();
+    if(id === 'stats') setTimeout(renderAnalytics, 50);
+    if(id === 'profile') renderWeightHistory();
+    const map = {workout:0, history:1, stats:2, profile:3};
+    document.querySelectorAll('.nav-item')[map[id]].classList.add('active');
+}
+
+/* --- TIMER --- */
+function addRest(s) { timeLeft += s; updateTimerDisplay(); }
+function resetTimer() { clearInterval(timerInterval); timerInterval = null; timeLeft = 0; updateTimerDisplay(); document.getElementById('timerAction').innerText = "START REST"; }
+function updateTimerDisplay() { const m = Math.floor(timeLeft/60), s = timeLeft%60; document.getElementById('timerDisplay').innerText = `${m}:${s<10?'0':''}${s}`; }
+function toggleTimer() {
+    if(timerInterval) { clearInterval(timerInterval); timerInterval = null; document.getElementById('timerAction').innerText = "START REST"; }
+    else if(timeLeft > 0) {
+        document.getElementById('timerAction').innerText = "PAUSE";
+        timerInterval = setInterval(() => { if(timeLeft > 0) { timeLeft--; updateTimerDisplay(); } else resetTimer(); }, 1000);
+    }
+}
+
+/* --- CALENDAR & HISTORY --- */
+function changeMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
+function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    document.getElementById('calMonth').innerText = calDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    grid.innerHTML = ['S','M','T','W','T','F','S'].map(d => `<div class="cal-day-label">${d}</div>`).join('');
+    const first = new Date(calDate.getFullYear(), calDate.getMonth(), 1).getDay();
+    const days = new Date(calDate.getFullYear(), calDate.getMonth()+1, 0).getDate();
+    const logs = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const workoutDates = logs.map(l => new Date(l.date).toDateString());
+    for(let i=0; i<first; i++) grid.innerHTML += `<div></div>`;
+    for(let d=1; d<=days; d++) {
+        const dStr = new Date(calDate.getFullYear(), calDate.getMonth(), d).toDateString();
+        grid.innerHTML += `<div class="cal-date ${workoutDates.includes(dStr)?'has-workout':''} ${dStr===selectedDateStr?'selected-date':''}" onclick="selectDate('${dStr}')">${d}</div>`;
+    }
+    renderDailyLogs();
+}
+function selectDate(str) { selectedDateStr = str; document.getElementById('selectedDateText').innerText = str === new Date().toDateString() ? "Today" : str; renderCalendar(); }
+
+function renderDailyLogs() {
+    const container = document.getElementById('dailyLogs');
+    let allLogs = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const dailyLogs = allLogs.filter(l => new Date(l.date).toDateString() === selectedDateStr);
+    container.innerHTML = dailyLogs.length ? "" : "<p style='color:var(--text-sub); text-align:center;'>Rest Day</p>";
+
+    dailyLogs.forEach((log) => {
+        let vol = log.sets.reduce((s, a) => s + (a.kg * a.reps), 0);
+        const card = document.createElement('div');
+        card.className = "workout-card";
+        card.style = "background:var(--card); padding:15px; border-radius:15px; border:1px solid var(--border); margin-bottom:10px;";
+        card.innerHTML = `
+            <b>${log.name}</b> <span style="float:right; font-size:10px; color:var(--accent)">Vol: ${vol}kg</span><br>
+            <div style="margin-top:10px; font-size:13px;">${log.sets.map(s => `${s.kg}x${s.reps}`).join(' | ')}</div>
+        `;
+        
+        makeSwipeable(card, () => {
+            const logIndex = allLogs.findIndex(l => l.date === log.date && l.name === log.name);
+            allLogs.splice(logIndex, 1);
+            localStorage.setItem('gymLogs', JSON.stringify(allLogs));
+            renderCalendar();
+        });
+
+        container.appendChild(card);
+    });
+}
+
+/* --- LOGGING --- */
+function addSetRow() {
     const div = document.createElement('div');
-    div.className = 'row';
-    div.innerHTML = `
-        <div style="padding-top:10px; color:#555">#</div>
-        <input type="number" placeholder="kg" value="${kg}">
-        <input type="number" placeholder="reps" value="${reps}">
-        <button onclick="this.parentElement.remove()" style="background:var(--danger); color:white">×</button>
-    `;
-    table.appendChild(div);
+    div.className = "set-row";
+    div.style = "display:grid; grid-template-columns: 1fr 1fr 40px; gap: 10px; margin-bottom: 10px;";
+    div.innerHTML = `<input type="number" placeholder="kg"><input type="number" placeholder="reps"><button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-size:20px; cursor:pointer;">×</button>`;
+    document.getElementById('logTable').appendChild(div);
+    makeSwipeable(div);
 }
 
 function saveWorkout() {
-    const name = document.getElementById('exSelect').value;
-    const rows = document.querySelectorAll('.row');
+    const ex = document.getElementById('exSelect').value;
+    const rows = document.querySelectorAll('.set-row');
     let sets = [];
-
     rows.forEach(r => {
-        const inputs = r.querySelectorAll('input');
-        if(inputs[0].value || inputs[1].value) {
-            sets.push({ 
-                kg: parseFloat(inputs[0].value) || 0, 
-                reps: parseInt(inputs[1].value) || 0 
-            });
+        const inp = r.querySelectorAll('input');
+        if(inp[0].value && inp[1].value) {
+            const kg = parseFloat(inp[0].value), reps = parseInt(inp[1].value);
+            sets.push({ kg, reps, oneRM: kg * (1 + (reps / 30)) });
         }
     });
-
-    if(sets.length === 0) return alert("Enter some data first!");
-
-    try {
-        let data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
-        data.push({ name, date: new Date().toLocaleString(), sets });
-        localStorage.setItem('myWorkouts', JSON.stringify(data));
-        
-        alert("✅ Saved!");
-        show('history');
-    } catch(e) {
-        alert("Storage error. Try clearing space.");
-    }
+    if(!sets.length) return;
+    let db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    db.push({ name: ex, date: new Date().toISOString(), sets });
+    localStorage.setItem('gymLogs', JSON.stringify(db));
+    document.getElementById('logTable').innerHTML = ""; addSetRow();
+    showScreen('history');
 }
 
-// --- HISTORY LOGIC ---
-function renderHistory() {
-    const list = document.getElementById('historyList');
-    const data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
-    list.innerHTML = data.length === 0 ? "<p style='text-align:center;color:#555'>No history found.</p>" : "";
-
-    for (let i = data.length - 1; i >= 0; i--) {
-        const item = data[i];
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start">
-                <div>
-                    <b style="color:var(--accent)">${item.name}</b><br>
-                    <small style="color:#777">${item.date}</small>
-                </div>
-                <button onclick="deleteSession(${i})" style="background:none; color:var(--danger); font-size:18px">🗑️</button>
-            </div>
-            <div style="margin-top:8px; font-size:14px; color:#ccc">
-                ${item.sets.map(s => `${s.kg}kg × ${s.reps}`).join(' | ')}
-            </div>
-        `;
-        list.appendChild(div);
-    }
+/* --- WEIGHT LOGS --- */
+function renderWeightHistory() {
+    const list = document.getElementById('weightHistoryList');
+    const bodyLogs = JSON.parse(localStorage.getItem('bodyLogs') || '[]');
+    bodyLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
+    list.innerHTML = bodyLogs.length ? "" : "<p style='color:var(--text-sub); font-size:12px; padding:20px; text-align:center;'>No weight logs yet.</p>";
+    bodyLogs.forEach(b => {
+        const d = new Date(b.date).toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'2-digit'});
+        list.innerHTML += `<div class="weight-entry"><span style="color:var(--text-sub)">${d}</span><span style="color:var(--accent); font-weight:bold;">${b.value} kg</span></div>`;
+    });
 }
 
-function deleteSession(index) {
-    if(confirm("Delete this session permanently?")) {
-        let data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
-        data.splice(index, 1);
-        localStorage.setItem('myWorkouts', JSON.stringify(data));
-        renderHistory();
-    }
+function saveBodyMetric(type) {
+    const val = document.getElementById('bodyWeightInput').value;
+    if(!val) return;
+    let db = JSON.parse(localStorage.getItem('bodyLogs') || '[]');
+    db.push({ type: type, value: parseFloat(val), date: new Date().toISOString() });
+    localStorage.setItem('bodyLogs', JSON.stringify(db));
+    document.getElementById('bodyWeightInput').value = "";
+    renderWeightHistory();
 }
 
-function wipeAllData() {
-    if(confirm("DANGER: Wipe ALL history?")) {
-        localStorage.removeItem('myWorkouts');
-        location.reload();
-    }
+/* --- DATA MGMT --- */
+function exportData() {
+    const data = { gymLogs: localStorage.getItem('gymLogs'), bodyLogs: localStorage.getItem('bodyLogs') };
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
 }
+function clearData() { if(confirm("Are you sure? This deletes ALL history.")) { localStorage.clear(); location.reload(); } }
 
-// --- CHART LOGIC ---
-function renderChart() {
-    const canvas = document.getElementById('progressChart');
-    const ctx = canvas.getContext('2d');
-    const name = document.getElementById('exSelect').value;
-    const data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
-
-    const history = data
-        .filter(item => item.name === name)
-        .map(item => {
-            const best1RM = item.sets.reduce((max, s) => {
-                const current = s.kg * (1 + s.reps / 30);
-                return Math.max(max, current);
-            }, 0);
-            return Math.round(best1RM);
+/* --- ANALYTICS --- */
+function setMetric(m, el) { currentMetric = m; document.querySelectorAll('.m-t').forEach(b => b.classList.remove('active')); el.classList.add('active'); renderAnalytics(); }
+function renderAnalytics() {
+    const ex = document.getElementById('statsExSelect').value;
+    let rawData = [];
+    if(ex === 'Body Weight') {
+        const bLogs = JSON.parse(localStorage.getItem('bodyLogs') || '[]');
+        rawData = bLogs.map(b => ({ val: b.value, date: b.date }));
+    } else {
+        const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+        rawData = db.filter(i => i.name === ex).map(h => {
+            let val = 0;
+            if(currentMetric === 'Weights') val = Math.max(...h.sets.map(s => s.kg));
+            else if(currentMetric === '1RM') val = Math.max(...h.sets.map(s => s.oneRM));
+            else if(currentMetric === 'Volume') val = h.sets.reduce((s, a) => s + (a.kg * a.reps), 0);
+            return { val, date: h.date };
         });
-
-    canvas.width = canvas.offsetWidth;
-    canvas.height = 220;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (history.length < 2) {
-        document.getElementById('statsInfo').innerText = "Log 2+ sessions of " + name + " to see chart.";
-        return;
     }
-    document.getElementById('statsInfo').innerText = name + " - Strength Trend (Est. 1RM)";
-
-    const pad = 40;
-    const w = canvas.width - (pad * 2);
-    const h = canvas.height - (pad * 2);
-    const max = Math.max(...history);
-    const min = Math.min(...history);
-    const range = (max - min) || 20;
-
-    // 1. Create a Gradient Fill (Optional but looks great)
-    const gradient = ctx.createLinearGradient(0, pad, 0, canvas.height - pad);
-    gradient.addColorStop(0, 'rgba(0, 201, 123, 0.3)');
-    gradient.addColorStop(1, 'rgba(0, 201, 123, 0)');
-
-    // 2. Draw the Area Fill first
-    ctx.beginPath();
-    history.forEach((val, i) => {
-        const x = pad + (i / (history.length - 1)) * w;
-        const y = (canvas.height - pad) - ((val - min) / range) * h;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    });
-    ctx.lineTo(pad + w, canvas.height - pad);
-    ctx.lineTo(pad, canvas.height - pad);
-    ctx.closePath();
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
-    // 3. Draw the Main Line
-    ctx.beginPath();
-    ctx.strokeStyle = '#00c97b'; // Neon Green
-    ctx.lineWidth = 4;           // Thick line
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-
-    history.forEach((val, i) => {
-        const x = pad + (i / (history.length - 1)) * w;
-        const y = (canvas.height - pad) - ((val - min) / range) * h;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    });
+    rawData.sort((a,b) => new Date(a.date) - new Date(b.date));
+    const canvas = document.getElementById('drilldownChart');
+    const ctx = canvas.getContext('2d');
+    if(!rawData.length) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+    const data = rawData.map(d => ({ val: d.val, date: new Date(d.date).toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit'}).replace('/', '.') }));
+    const pts = data.map(d => d.val);
+    document.getElementById('prVal').innerText = Math.max(...pts).toFixed(1);
+    document.getElementById('avgVal').innerText = (pts.reduce((a,b)=>a+b,0)/pts.length).toFixed(1);
+    canvas.width = canvas.offsetWidth * 2; canvas.height = 520;
+    ctx.scale(2, 2);
+    const w = canvas.width/2, h = canvas.height/2, pLeft = 20, pRight = 45, pTop = 50, pBottom = 40;
+    const max = Math.max(...pts) * 1.1, min = Math.min(...pts) * 0.9;
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = '#222'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1;
+    ctx.fillStyle = '#8b949e'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+    for(let i=0; i<=4; i++) {
+        let y = pTop + (i * (h - pTop - pBottom) / 4);
+        let val = max - (i * (max - min) / 4);
+        ctx.beginPath(); ctx.moveTo(pLeft, y); ctx.lineTo(w - pRight, y); ctx.stroke();
+        ctx.fillText(Math.round(val), w - pRight + 10, y + 4);
+    }
+    const coords = data.map((d, i) => ({ x: pLeft + (i * (w - pLeft - pRight) / (data.length - 1 || 1)), y: h - pBottom - ((d.val - min) / (max - min || 1)) * (h - pTop - pBottom) }));
+    let gradient = ctx.createLinearGradient(0, pTop, 0, h - pBottom);
+    gradient.addColorStop(0, 'rgba(0, 242, 254, 0.2)'); gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
+    ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(coords[0].x, coords[0].y);
+    for (let i = 0; i < coords.length - 1; i++) {
+        let cp1x = (coords[i].x + coords[i + 1].x) / 2;
+        ctx.bezierCurveTo(cp1x, coords[i].y, cp1x, coords[i + 1].y, coords[i + 1].x, coords[i + 1].y);
+    }
+    ctx.lineTo(coords[coords.length-1].x, h - pBottom); ctx.lineTo(coords[0].x, h - pBottom);
+    ctx.fillStyle = gradient; ctx.fill();
+    ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(coords[0].x, coords[0].y);
+    for (let i = 0; i < coords.length - 1; i++) {
+        let cp1x = (coords[i].x + coords[i + 1].x) / 2;
+        ctx.bezierCurveTo(cp1x, coords[i].y, cp1x, coords[i + 1].y, coords[i + 1].x, coords[i + 1].y);
+    }
     ctx.stroke();
-
-    // 4. Add small data points (optional, keeps the "line" feeling)
-    history.forEach((val, i) => {
-        const x = pad + (i / (history.length - 1)) * w;
-        const y = (canvas.height - pad) - ((val - min) / range) * h;
-        ctx.fillStyle = '#ffffff'; // White dots for contrast
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fill();
-    });
+    ctx.fillStyle = '#8b949e'; ctx.textAlign = 'center';
+    data.forEach((d, i) => ctx.fillText(d.date, coords[i].x, h - 15));
 }
 
-// Start with one empty row
+document.getElementById('exSelect').innerHTML = document.getElementById('statsExSelect').innerHTML = exercises.map(e => `<option>${e}</option>`).join('');
 addSetRow();
+setTimeout(renderAnalytics, 100);
 </script>
 </body>
 </html>
