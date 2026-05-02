@@ -181,9 +181,14 @@
     </div>
 </div>
 
-<!-- HISTORY SCREEN -->
+<!-- HISTORY SCREEN (UPDATED WITH DROPDOWN) -->
 <div id="historyScreen" class="screen">
-    <h2 style="color: var(--accent);">History</h2>
+    <div style="position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+        <h2 style="color: var(--accent); margin: 0;">History</h2>
+        <select id="historyMonthJump" onchange="jumpToMonth(this.value)" style="padding: 8px; border-radius: 8px; background: var(--card); color: var(--accent); border: 1px solid var(--border); font-size: 12px; font-weight: bold;">
+            <option value="">Jump to...</option>
+        </select>
+    </div>
     <div id="historyLogs"></div>
 </div>
 
@@ -361,11 +366,24 @@ function toggleTimer() {
 function adjustTimer(amt) { timeLeft = Math.max(0, timeLeft + amt); updateTimerDisplay(); }
 function resetTimer() { clearInterval(timerInterval); timerRunning = false; timeLeft = 0; updateTimerDisplay(); document.getElementById('timerToggle').innerText = "START"; }
 
+// JUMP TO MONTH LOGIC
+function jumpToMonth(monthId) {
+    if (!monthId) return;
+    const element = document.getElementById(monthId);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 // HISTORY - UPDATED FOR SPLITS & MONTHS
 function renderHistory() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const historyContainer = document.getElementById('historyLogs');
+    const monthJump = document.getElementById('historyMonthJump');
+    
     historyContainer.innerHTML = '';
+    monthJump.innerHTML = '<option value="">Jump to...</option>';
+    
     if (db.length === 0) { historyContainer.innerHTML = '<p style="color:var(--text-sub); text-align:center;">No sessions logged yet.</p>'; return; }
 
     const sortedLogs = db.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -378,8 +396,18 @@ function renderHistory() {
     });
 
     for (const [month, splits] of Object.entries(groups)) {
+        // Create unique ID for the dropdown navigation
+        const monthId = month.replace(/\s+/g, '');
+        
+        // Add option to dropdown
+        const opt = document.createElement('option');
+        opt.value = monthId;
+        opt.innerText = month;
+        monthJump.appendChild(opt);
+
         const monthHeader = document.createElement('div');
         monthHeader.className = 'history-month-header';
+        monthHeader.id = monthId; // ID for scrolling
         monthHeader.innerText = month;
         historyContainer.appendChild(monthHeader);
 
@@ -491,4 +519,4 @@ function resetDatabase() { if(confirm("Clear all data?")) { localStorage.clear()
 renderWeekBar(); updateDropdown(); addSetRow(); updateHeatmap();
 </script>
 </body>
-</html>
+</html>x
