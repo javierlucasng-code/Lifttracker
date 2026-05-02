@@ -213,6 +213,13 @@
         </div>
     </div>
 
+    <!-- 1RM CARD START -->
+    <div class="workout-card">
+        <span class="label-text">Personal Records (Est. 1RM)</span>
+        <div id="maxesList" style="margin-top: 10px; display: grid; gap: 8px;"></div>
+    </div>
+    <!-- 1RM CARD END -->
+
     <div class="workout-card">
         <span class="label-text">Volume by Split (7d)</span>
         <div style="height: 180px;"><canvas id="splitVolumeChart"></canvas></div>
@@ -267,7 +274,7 @@ function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(id + 'Screen').style.display = 'block';
-    if(id === 'workout') { renderWeekBar(); updateHeatmap(); }
+    if(id === 'workout') { renderWeekBar(); updateHeatmap(); updateDropdown(); }
     if(id === 'history') renderHistory();
     if(id === 'stats') renderStats();
     document.querySelector(`.nav-item[onclick="showScreen('${id}')"]`).classList.add('active');
@@ -444,6 +451,25 @@ function filterStats(split, element) {
     renderStats();
 }
 
+function getEstimatedMaxes(filter) {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const maxes = {};
+    db.forEach(log => {
+        // Filter based on selected routine split
+        if (filter === 'All' || log.routine === filter) {
+            log.sets.forEach(set => {
+                if (set.kg > 0 && set.reps > 0) {
+                    const estimated1RM = set.kg * (36 / (37 - Math.min(set.reps, 10))); 
+                    if (!maxes[log.name] || estimated1RM > maxes[log.name]) {
+                        maxes[log.name] = Math.round(estimated1RM);
+                    }
+                }
+            });
+        }
+    });
+    return maxes;
+}
+
 function renderStats() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const dailyVolume = {};
@@ -472,6 +498,24 @@ function renderStats() {
     document.getElementById('sessionCountLabel').innerText = Object.keys(dailyVolume).filter(d => new Date(d) >= sevenDaysAgo).length;
     document.getElementById('trendLabel').innerText = `Showing ${currentStatFilter}`;
 
+    // 1RM Injections
+    const maxes = getEstimatedMaxes(currentStatFilter);
+    const maxesContainer = document.getElementById('maxesList');
+    maxesContainer.innerHTML = '';
+    
+    const entries = Object.entries(maxes);
+    if (entries.length === 0) {
+        maxesContainer.innerHTML = `<div style="color:var(--text-sub); font-size:12px; text-align:center; padding:10px;">No records for ${currentStatFilter}</div>`;
+    } else {
+        entries.forEach(([exercise, weight]) => {
+            maxesContainer.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:10px; border-radius:10px; border:1px solid var(--border);">
+                    <span style="font-size:13px; font-weight:bold;">${exercise}</span>
+                    <span style="color:var(--accent); font-weight:900;">${weight}kg</span>
+                </div>`;
+        });
+    }
+
     if(splitVolChart) splitVolChart.destroy();
     splitVolChart = new Chart(document.getElementById('splitVolumeChart').getContext('2d'), {
         type: 'bar',
@@ -492,32 +536,54 @@ function renderStats() {
     distChart = new Chart(document.getElementById('distributionChart').getContext('2d'), {
         type: 'doughnut',
         data: { labels: ['Push', 'Pull', 'Legs'], datasets: [{ data: [splitCounts.Push, splitCounts.Pull, splitCounts.Legs], backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'], borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'right', labels: { color: '#8b949e', font: { size: 11 } } } } }
+        options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'right', labels: { color: '#8b949e' } } } }
     });
 }
 
 function updateHeatmap() {
+    const heatmap = document.getElementById('freshnessHeatmap');
+    heatmap.innerHTML = '';
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-    const container = document.getElementById('freshnessHeatmap'); container.innerHTML = '';
-    ['Push', 'Pull', 'Legs'].forEach(r => {
+    const now = new Date();
+    ['Push','Pull','Legs'].forEach(r => {
         const last = db.filter(l => l.routine === r).sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-        let prog = 100, stat = "READY", col = "var(--accent)";
-        if(last) {
-            const hrs = (new Date() - new Date(last.date)) / 3600000;
-            if(hrs < 48) { prog = (hrs/48)*100; stat = "RECOVERING"; col = "var(--warning)"; }
-        }
-        container.innerHTML += `<div class="recovery-card"><span class="label-text" style="font-size:9px;">${r}</span><div style="font-weight:900; font-size:11px; color:${col};">${stat}</div><div class="recovery-progress" style="width:${prog}%; background:${col};"></div></div>`;
+        const days = last ? Math.floor((now - new Date(last.date)) / 86400000) : 7;
+        const fresh = Math.min(100, days * 25);
+        heatmap.innerHTML += `
+            <div class="recovery-card">
+                <span class="label-text">${r}</span>
+                <div style="font-size:18px; font-weight:900; color:${fresh > 75 ? 'var(--accent)' : 'var(--warning)'}">${fresh}%</div>
+                <div class="recovery-progress" style="width:${fresh}%; background:${fresh > 75 ? 'var(--accent)' : 'var(--warning)'}"></div>
+            </div>`;
     });
 }
 
-function exportData() { const b = new Blob([localStorage.getItem('gymLogs') || '[]'], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup.json`; a.click(); }
-function importData(e) {
-    const f = e.target.files[0]; if(!f) return;
-    const r = new FileReader(); r.onload = (ev) => { localStorage.setItem('gymLogs', ev.target.result); location.reload(); }; r.readAsText(f);
+function exportData() {
+    const data = localStorage.getItem('gymLogs') || '[]';
+    const blob = new Blob([data], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `elite-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
 }
-function resetDatabase() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
 
-renderWeekBar(); updateDropdown(); addSetRow(); updateHeatmap();
+function importData(event) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const json = JSON.parse(e.target.result);
+            localStorage.setItem('gymLogs', JSON.stringify(json));
+            alert("Data Imported!");
+            location.reload();
+        } catch(err) { alert("Invalid File"); }
+    };
+    reader.readAsText(event.target.files[0]);
+}
+
+function resetDatabase() { if(confirm("Erase all data?")) { localStorage.clear(); location.reload(); } }
+
+window.onload = () => { renderWeekBar(); updateHeatmap(); updateDropdown(); addSetRow(); };
 </script>
+
 </body>
 </html>
