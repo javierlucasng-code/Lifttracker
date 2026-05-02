@@ -24,7 +24,7 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* HEADER & NAV */
+        /* CALENDAR HEADER */
         .calendar-header { margin-bottom: 15px; cursor: pointer; }
         .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
         
@@ -44,13 +44,13 @@
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
 
-        /* DOT HIGHLIGHT */
+        /* DOT HIGHLIGHTS */
         .has-workout::after {
-            content: ''; position: absolute; bottom: 8px; width: 5px; height: 5px;
+            content: ''; position: absolute; bottom: 10px; width: 6px; height: 6px;
             background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent);
         }
 
-        /* CUSTOM CALENDAR MODAL */
+        /* CUSTOM MODAL CALENDAR */
         #calendarModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 3000; display: none;
@@ -66,7 +66,7 @@
             aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
             font-size: 14px; border-radius: 10px; cursor: pointer; position: relative;
         }
-        .cal-cell.today { color: var(--accent); font-weight: bold; }
+        .cal-cell.today { color: var(--accent); font-weight: bold; border: 1px solid var(--accent); }
         .cal-cell.selected { background: var(--accent); color: #000; font-weight: bold; }
         .cal-cell.has-log::after {
             content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px;
@@ -74,25 +74,45 @@
         }
         .cal-cell.selected.has-log::after { background: #000; }
 
-        /* REST OF UI */
+        /* RECOVERY CARDS */
+        .recovery-card { 
+            border: 1px solid var(--border); 
+            padding: 12px 8px; 
+            border-radius: 15px; 
+            text-align: center; 
+            background: var(--card);
+            position: relative;
+            overflow: hidden;
+        }
+        .recovery-progress {
+            position: absolute; bottom: 0; left: 0; height: 3px; 
+            background: var(--accent); transition: width 0.5s ease;
+        }
+
+        /* INPUTS & BUTTONS */
         .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
         .timer-display { font-size: 22px; font-weight: 900; color: var(--accent); font-family: monospace; }
         .timer-btn { background: var(--input-bg); border: 1px solid var(--border); color: white; padding: 8px 6px; border-radius: 8px; font-size: 10px; cursor: pointer; min-width: 45px; }
 
-        .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; }
+        .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; overflow: hidden;}
         .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); width: calc(33.33% - 4px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
         .pos-push { transform: translateX(0); } .pos-pull { transform: translateX(100%); } .pos-legs { transform: translateX(200%); }
 
         select, .set-row input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: white; font-size: 15px; outline: none; }
         .set-row { display: grid; grid-template-columns: 1fr 1fr 30px; gap: 12px; margin-bottom: 12px; align-items: center; }
-        
+
         .btn-primary { background: var(--accent); color: #000; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; }
         .btn-secondary { background: var(--card); color: white; border: 1px solid var(--border); width: 100%; padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 12px; }
-        
+        .btn-danger { background: rgba(255, 77, 77, 0.05); color: var(--danger); border: 1px solid var(--danger); width: 100%; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: 900; }
+
+        .workout-card { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 12px; }
+        .label-text { font-size: 11px; color: var(--text-sub); text-transform: uppercase; margin-bottom: 8px; display: block; font-weight: bold; }
+
+        /* NAVBAR */
         .navbar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 400px; display: flex; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; padding: 12px 0; justify-content: space-around; z-index: 2000; }
-        .nav-item { color: #555; cursor: pointer; flex: 1; display: flex; justify-content: center; }
-        .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
-        .nav-item.active { color: var(--accent); }
+        .nav-item { color: #555; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .nav-item svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+        .nav-item.active { color: var(--accent); transform: translateY(-4px); }
     </style>
 </head>
 <body>
@@ -108,6 +128,7 @@
     </div>
 </div>
 
+<!-- WORKOUT SCREEN -->
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header" onclick="openCalendar()">
         <span class="label-text">Select Date</span>
@@ -118,6 +139,7 @@
 
     <div class="scroll-calendar" id="weekBar"></div>
     
+    <!-- Updated Recovery Heatmap UI -->
     <div id="freshnessHeatmap" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px;"></div>
     
     <div class="toggle-container">
@@ -143,10 +165,36 @@
     <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
 </div>
 
-<!-- Simple Nav -->
+<!-- HISTORY SCREEN -->
+<div id="historyScreen" class="screen">
+    <h2 style="color: var(--accent);">History</h2>
+    <div id="historyLogs"></div>
+</div>
+
+<!-- STATS SCREEN -->
+<div id="statsScreen" class="screen">
+    <h2 style="color: var(--accent);">Analytics</h2>
+    <div class="workout-card">
+        <span class="label-text">Daily Volume Progress</span>
+        <div style="height: 250px;"><canvas id="progressChart"></canvas></div>
+    </div>
+</div>
+
+<!-- PROFILE/SETTINGS SCREEN -->
+<div id="profileScreen" class="screen">
+    <h2 style="color: var(--accent);">Settings</h2>
+    <div class="workout-card">
+        <button class="btn-secondary" onclick="exportData()">DOWNLOAD BACKUP</button>
+        <button class="btn-danger" onclick="resetDatabase()">RESET DATA</button>
+    </div>
+</div>
+
+<!-- NAV BAR -->
 <nav class="navbar">
     <div class="nav-item active" onclick="showScreen('workout')"><svg viewBox="0 0 24 24"><path d="M6 12h12M6 8h12M6 16h12M2 12h2M20 12h2M5 4v16M19 4v16"/></svg></div>
-    <div class="nav-item" onclick="location.reload()"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></div>
+    <div class="nav-item" onclick="showScreen('history')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="nav-item" onclick="showScreen('stats')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <div class="nav-item" onclick="showScreen('profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
 </nav>
 
 <script>
@@ -155,14 +203,15 @@ let currentRoutine = 'Push';
 let timeLeft = 0;
 let timerRunning = false;
 let timerInterval;
+let myChart = null;
 
 const splitExercises = {
-    'Push': ['Flat Bench Press', 'Incline DB Press', 'Tricep Extension'],
-    'Pull': ['Lat Pulldown', 'T-Bar Row', 'Bicep Curls'],
-    'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl']
+    'Push': ['Flat Bench Press', 'Incline DB Press', 'Tricep Extension', 'Overhead Press'],
+    'Pull': ['Lat Pulldown', 'T-Bar Row', 'Low Row', 'Bicep Curls'],
+    'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL']
 };
 
-// --- CUSTOM CALENDAR LOGIC ---
+// --- MODAL CALENDAR ---
 function openCalendar() {
     const modal = document.getElementById('calendarModal');
     const grid = document.getElementById('calendarGrid');
@@ -176,13 +225,11 @@ function openCalendar() {
     const month = selectedDate.getMonth();
     monthLabel.innerText = selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-    // Day headers
     ['S','M','T','W','T','F','S'].forEach(d => grid.innerHTML += `<div class="cal-day-name">${d}</div>`);
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // Padding for start of month
     for(let i=0; i<firstDay; i++) grid.innerHTML += `<div></div>`;
 
     for(let d=1; d<=daysInMonth; d++) {
@@ -198,10 +245,22 @@ function openCalendar() {
         grid.appendChild(cell);
     }
 }
-
 function closeCalendar() { document.getElementById('calendarModal').style.display = 'none'; }
 
-// --- WEEK BAR LOGIC ---
+// --- UI NAVIGATION ---
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id + 'Screen').style.display = 'block';
+    
+    const navItems = document.querySelectorAll('.nav-item');
+    if(id === 'workout') { navItems[0].classList.add('active'); renderWeekBar(); updateHeatmap();}
+    if(id === 'history') { navItems[1].classList.add('active'); renderHistory(); }
+    if(id === 'stats') { navItems[2].classList.add('active'); renderStats(); }
+    if(id === 'profile') navItems[3].classList.add('active');
+}
+
+// --- CORE APP LOGIC ---
 function renderWeekBar() {
     const weekBar = document.getElementById('weekBar');
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
@@ -226,7 +285,6 @@ function renderWeekBar() {
     }
 }
 
-// --- APP CORE ---
 function setRoutine(name, sliderId, posClass) {
     currentRoutine = name;
     document.getElementById(sliderId).className = 'toggle-slider ' + posClass;
@@ -261,20 +319,81 @@ function saveWorkout() {
     addSetRow();
     updateHeatmap();
     renderWeekBar();
-    alert("Logged!");
+    alert("Session Logged!");
 }
 
+// --- NEW MUSCLE RECOVERY LOGIC ---
 function updateHeatmap() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const container = document.getElementById('freshnessHeatmap');
     container.innerHTML = '';
+    
+    const RECOVERY_TIME_HRS = 48; // Standard muscle recovery window
+
     ['Push', 'Pull', 'Legs'].forEach(r => {
         const last = db.filter(l => l.routine === r).sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-        const hrs = last ? Math.floor((new Date() - new Date(last.date)) / 3600000) : '--';
-        container.innerHTML += `<div style="border:1px solid var(--border); padding:10px; border-radius:12px; text-align:center;"><span class="label-text" style="font-size:9px;">${r}</span><br><b>${hrs}h</b></div>`;
+        
+        let status = "READY";
+        let color = "var(--accent)";
+        let progress = 100;
+        let subtitle = "Full Power";
+
+        if(last) {
+            const hrsSince = (new Date() - new Date(last.date)) / 3600000;
+            if(hrsSince < RECOVERY_TIME_HRS) {
+                progress = (hrsSince / RECOVERY_TIME_HRS) * 100;
+                status = "RECOVERING";
+                color = "var(--warning)";
+                subtitle = `${Math.floor(RECOVERY_TIME_HRS - hrsSince)}h left`;
+            }
+        } else {
+            subtitle = "No Logs Yet";
+        }
+
+        container.innerHTML += `
+            <div class="recovery-card">
+                <span class="label-text" style="font-size:9px; margin:0;">${r}</span>
+                <div style="font-weight:900; font-size:11px; color:${color}; margin:4px 0;">${status}</div>
+                <div style="font-size:10px; color:var(--text-sub);">${subtitle}</div>
+                <div class="recovery-progress" style="width:${progress}%; background:${color};"></div>
+            </div>`;
     });
 }
 
+// --- HISTORY & STATS ---
+function renderHistory() {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    document.getElementById('historyLogs').innerHTML = db.slice().reverse().map(l => `
+        <div class="workout-card">
+            <span class="label-text">${new Date(l.date).toLocaleDateString()} — ${l.routine}</span>
+            <div style="display:flex; justify-content:space-between;"><b>${l.name}</b> <span>${l.sets.length} Sets</span></div>
+        </div>`).join('');
+}
+
+function renderStats() {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const dailyVolume = {};
+    db.forEach(log => {
+        const d = new Date(log.date).toLocaleDateString();
+        const vol = log.sets.reduce((s, set) => s + (set.kg * set.reps), 0);
+        dailyVolume[d] = (dailyVolume[d] || 0) + vol;
+    });
+    const sortedDates = Object.keys(dailyVolume).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
+    const chartData = sortedDates.map(d => dailyVolume[d]);
+
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedDates,
+            datasets: [{ label: 'Volume', data: chartData, borderColor: '#00ff41', tension: 0.3, fill: true, backgroundColor: 'rgba(0, 255, 65, 0.1)' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+}
+
+// --- TIMER ---
 function updateTimerDisplay() {
     const mins = Math.floor(timeLeft / 60); const secs = timeLeft % 60;
     document.getElementById('timerDisplay').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -284,13 +403,17 @@ function toggleTimer() {
     if (timerRunning) { clearInterval(timerInterval); btn.innerText = "START"; } 
     else {
         if (timeLeft <= 0) return;
-        timerInterval = setInterval(() => { if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); } else { clearInterval(timerInterval); alert("Time's up!"); resetTimer(); }}, 1000);
+        timerInterval = setInterval(() => { if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); } else { clearInterval(timerInterval); alert("Rest Finished!"); resetTimer(); }}, 1000);
         btn.innerText = "STOP";
     }
     timerRunning = !timerRunning;
 }
 function resetTimer() { clearInterval(timerInterval); timerRunning = false; timeLeft = 0; updateTimerDisplay(); }
 function adjustTimer(amt) { timeLeft = Math.max(0, timeLeft + amt); updateTimerDisplay(); }
+
+// --- SETTINGS ---
+function resetDatabase() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
+function exportData() { const blob = new Blob([localStorage.getItem('gymLogs') || '[]'], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); }
 
 renderWeekBar(); updateDropdown(); addSetRow(); updateHeatmap();
 </script>
