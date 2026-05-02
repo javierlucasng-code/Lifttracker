@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fitness Tracker Pro</title>
+<style>
+    :root { 
+        --bg: #0b0d12; 
+        --card: #121722; 
+        --accent: #00c97b; 
+        --danger: #ff4757; 
+        --input-bg: #1a2030;
+    }
+    
+    body { 
+        margin: 0; 
+        font-family: -apple-system, system-ui, sans-serif; 
+        background: var(--bg); 
+        color: white; 
+        padding-bottom: 80px; 
+    }
+
+    .screen { padding: 15px; display: none; }
+    
+    /* UI Cards */
+    .card { 
+        background: var(--card); 
+        padding: 15px; 
+        border-radius: 12px; 
+        margin-bottom: 12px; 
+        border-left: 4px solid var(--accent);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .row { 
+        display: grid; 
+        grid-template-columns: 30px 1fr 1fr 40px; 
+        gap: 8px; 
+        margin-bottom: 8px; 
+    }
+
+    input { 
+        width: 100%; 
+        padding: 10px 2px; 
+        background: var(--input-bg); 
+        border: 1px solid #2a3040; 
+        color: white; 
+        border-radius: 8px; 
+        text-align: center; 
+        font-size: 16px; 
+    }
+
+    select { 
+        width: 100%; 
+        padding: 12px; 
+        background: var(--input-bg); 
+        color: white; 
+        border: 1px solid var(--accent); 
+        border-radius: 10px; 
+        margin-bottom: 15px; 
+        font-size: 1rem;
+    }
+
+    /* Buttons */
+    button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; padding: 10px; }
+    .btn-save { background: var(--accent); color: black; width: 100%; font-size: 1rem; margin-top: 10px; }
+    .btn-add { width: 100%; background: #2a3040; color: white; margin-bottom: 5px; }
+
+    /* Navigation */
+    .navbar { 
+        position: fixed; 
+        bottom: 0; 
+        width: 100%; 
+        display: flex; 
+        justify-content: space-around; 
+        background: #111; 
+        padding: 15px 0; 
+        border-top: 1px solid #222;
+    }
+    .nav-item { color: #444; font-size: 24px; cursor: pointer; transition: 0.2s; }
+    .nav-item.active { color: var(--accent); }
+
+    /* Chart */
+    canvas { 
+        width: 100%; 
+        height: 200px; 
+        background: #000; 
+        border-radius: 8px; 
+        margin-top: 10px;
+    }
+    
+    #debug { font-size: 10px; color: #444; text-align: center; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<!-- WORKOUT SCREEN -->
+<div id="workoutScreen" class="screen" style="display: block;">
+    <h2>Log Workout</h2>
+    <select id="exSelect">
+        <option>Bench Press</option>
+        <option>Squat</option>
+        <option>Deadlift</option>
+        <option>Overhead Press</option>
+    </select>
+    <div id="table"></div>
+    <button class="btn-add" onclick="addSetRow()">+ Add Set</button>
+    <button class="btn-save" onclick="saveWorkout()">💾 SAVE TO HISTORY</button>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div id="historyScreen" class="screen">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+        <h2>History</h2>
+        <button onclick="wipeAllData()" style="background:none; color:var(--danger); font-size:11px">WIPE ALL</button>
+    </div>
+    <div id="historyList"></div>
+</div>
+
+<!-- STATS SCREEN -->
+<div id="statsScreen" class="screen">
+    <h2>Progress</h2>
+    <div class="card">
+        <canvas id="progressChart"></canvas>
+    </div>
+    <p id="statsInfo" style="text-align:center; color:#777; font-size:13px"></p>
+</div>
+
+<!-- NAV BAR -->
+<nav class="navbar">
+    <div class="nav-item active" onclick="show('workout')">🏋️</div>
+    <div class="nav-item" onclick="show('history')">💾</div>
+    <div class="nav-item" onclick="show('stats')">📊</div>
+</nav>
+
+<div id="debug">Ready</div>
+
+<script>
+// --- NAVIGATION LOGIC ---
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    document.getElementById(id + 'Screen').style.display = 'block';
+    
+    const navs = document.querySelectorAll('.nav-item');
+    if(id === 'workout') { navs[0].classList.add('active'); }
+    else if(id === 'history') { navs[1].classList.add('active'); renderHistory(); }
+    else if(id === 'stats') { navs[2].classList.add('active'); renderChart(); }
+}
+
+// --- WORKOUT LOGIC ---
+function addSetRow(kg='', reps='') {
+    const table = document.getElementById('table');
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.innerHTML = `
+        <div style="padding-top:10px; color:#555">#</div>
+        <input type="number" placeholder="kg" value="${kg}">
+        <input type="number" placeholder="reps" value="${reps}">
+        <button onclick="this.parentElement.remove()" style="background:var(--danger); color:white">×</button>
+    `;
+    table.appendChild(div);
+}
+
+function saveWorkout() {
+    const name = document.getElementById('exSelect').value;
+    const rows = document.querySelectorAll('.row');
+    let sets = [];
+
+    rows.forEach(r => {
+        const inputs = r.querySelectorAll('input');
+        if(inputs[0].value || inputs[1].value) {
+            sets.push({ 
+                kg: parseFloat(inputs[0].value) || 0, 
+                reps: parseInt(inputs[1].value) || 0 
+            });
+        }
+    });
+
+    if(sets.length === 0) return alert("Enter some data first!");
+
+    try {
+        let data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
+        data.push({ name, date: new Date().toLocaleString(), sets });
+        localStorage.setItem('myWorkouts', JSON.stringify(data));
+        
+        alert("✅ Saved!");
+        show('history');
+    } catch(e) {
+        alert("Storage error. Try clearing space.");
+    }
+}
+
+// --- HISTORY LOGIC ---
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    const data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
+    list.innerHTML = data.length === 0 ? "<p style='text-align:center;color:#555'>No history found.</p>" : "";
+
+    for (let i = data.length - 1; i >= 0; i--) {
+        const item = data[i];
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                <div>
+                    <b style="color:var(--accent)">${item.name}</b><br>
+                    <small style="color:#777">${item.date}</small>
+                </div>
+                <button onclick="deleteSession(${i})" style="background:none; color:var(--danger); font-size:18px">🗑️</button>
+            </div>
+            <div style="margin-top:8px; font-size:14px; color:#ccc">
+                ${item.sets.map(s => `${s.kg}kg × ${s.reps}`).join(' | ')}
+            </div>
+        `;
+        list.appendChild(div);
+    }
+}
+
+function deleteSession(index) {
+    if(confirm("Delete this session permanently?")) {
+        let data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
+        data.splice(index, 1);
+        localStorage.setItem('myWorkouts', JSON.stringify(data));
+        renderHistory();
+    }
+}
+
+function wipeAllData() {
+    if(confirm("DANGER: Wipe ALL history?")) {
+        localStorage.removeItem('myWorkouts');
+        location.reload();
+    }
+}
+
+// --- CHART LOGIC ---
+function renderChart() {
+    const canvas = document.getElementById('progressChart');
+    const ctx = canvas.getContext('2d');
+    const name = document.getElementById('exSelect').value;
+    const data = JSON.parse(localStorage.getItem('myWorkouts') || '[]');
+
+    const history = data
+        .filter(item => item.name === name)
+        .map(item => {
+            const best1RM = item.sets.reduce((max, s) => {
+                const current = s.kg * (1 + s.reps / 30);
+                return Math.max(max, current);
+            }, 0);
+            return Math.round(best1RM);
+        });
+
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 220;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (history.length < 2) {
+        document.getElementById('statsInfo').innerText = "Log 2+ sessions of " + name + " to see chart.";
+        return;
+    }
+    document.getElementById('statsInfo').innerText = name + " - Strength Trend (Est. 1RM)";
+
+    const pad = 40;
+    const w = canvas.width - (pad * 2);
+    const h = canvas.height - (pad * 2);
+    const max = Math.max(...history);
+    const min = Math.min(...history);
+    const range = (max - min) || 20;
+
+    // 1. Create a Gradient Fill (Optional but looks great)
+    const gradient = ctx.createLinearGradient(0, pad, 0, canvas.height - pad);
+    gradient.addColorStop(0, 'rgba(0, 201, 123, 0.3)');
+    gradient.addColorStop(1, 'rgba(0, 201, 123, 0)');
+
+    // 2. Draw the Area Fill first
+    ctx.beginPath();
+    history.forEach((val, i) => {
+        const x = pad + (i / (history.length - 1)) * w;
+        const y = (canvas.height - pad) - ((val - min) / range) * h;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(pad + w, canvas.height - pad);
+    ctx.lineTo(pad, canvas.height - pad);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // 3. Draw the Main Line
+    ctx.beginPath();
+    ctx.strokeStyle = '#00c97b'; // Neon Green
+    ctx.lineWidth = 4;           // Thick line
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    history.forEach((val, i) => {
+        const x = pad + (i / (history.length - 1)) * w;
+        const y = (canvas.height - pad) - ((val - min) / range) * h;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // 4. Add small data points (optional, keeps the "line" feeling)
+    history.forEach((val, i) => {
+        const x = pad + (i / (history.length - 1)) * w;
+        const y = (canvas.height - pad) - ((val - min) / range) * h;
+        ctx.fillStyle = '#ffffff'; // White dots for contrast
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+// Start with one empty row
+addSetRow();
+</script>
+</body>
+</html>
