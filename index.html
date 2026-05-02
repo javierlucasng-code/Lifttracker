@@ -92,29 +92,28 @@
         }
         .stats-nav-item.active { background: var(--selected-pill); border-color: var(--accent); color: var(--accent); }
 
-        /* HISTORY STYLES */
+        /* HISTORY DROPDOWN STYLES */
         .history-month-header {
-            color: var(--accent);
-            font-size: 18px;
-            font-weight: 900;
-            margin: 25px 0 10px 0;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
+            color: var(--accent); font-size: 18px; font-weight: 900; margin: 25px 0 10px 0;
+            text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px;
         }
         .history-split-group { margin-bottom: 15px; }
         .history-split-label {
-            font-size: 10px;
-            font-weight: bold;
-            color: var(--text-sub);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 10px; font-weight: bold; color: var(--text-sub); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
         }
         .history-split-label::after { content: ''; flex: 1; height: 1px; background: #222; }
+
+        .details-container {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
+            background: var(--input-bg); border-radius: 0 0 10px 10px;
+        }
+        .details-container.open {
+            max-height: 300px; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px;
+        }
+        .details-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+        .details-table th { text-align: left; color: var(--text-sub); font-size: 10px; padding-bottom: 5px; }
+        .details-table td { padding: 4px 0; color: var(--text-main); }
 
         /* NAVBAR */
         .navbar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 400px; display: flex; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; padding: 12px 0; justify-content: space-around; z-index: 2000; }
@@ -181,7 +180,7 @@
     </div>
 </div>
 
-<!-- HISTORY SCREEN (UPDATED WITH DROPDOWN) -->
+<!-- HISTORY SCREEN -->
 <div id="historyScreen" class="screen">
     <div style="position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
         <h2 style="color: var(--accent); margin: 0;">History</h2>
@@ -252,16 +251,11 @@
 </nav>
 
 <script>
-// INITIAL DATA & GLOBALS
 let selectedDate = new Date();
 let currentRoutine = 'Push';
-let myChart = null;
-let distChart = null;
-let splitVolChart = null;
+let myChart = null, distChart = null, splitVolChart = null;
 let currentStatFilter = 'All';
-let timeLeft = 0;
-let timerRunning = false;
-let timerInterval;
+let timeLeft = 0, timerRunning = false, timerInterval;
 
 const splitExercises = {
     'Push': ['Flat Bench Press', 'Incline Press', 'Tricep Extension', 'Overhead Extension', 'Overhead Press', 'Lateral Raise'],
@@ -279,7 +273,6 @@ function showScreen(id) {
     document.querySelector(`.nav-item[onclick="showScreen('${id}')"]`).classList.add('active');
 }
 
-// CALENDAR LOGIC
 function openCalendar() {
     const modal = document.getElementById('calendarModal');
     const grid = document.getElementById('calendarGrid');
@@ -302,7 +295,6 @@ function openCalendar() {
 }
 function closeCalendar() { document.getElementById('calendarModal').style.display = 'none'; }
 
-// WORKOUT LOGGING
 function renderWeekBar() {
     const weekBar = document.getElementById('weekBar');
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
@@ -341,7 +333,6 @@ function saveWorkout() {
     document.getElementById('logTable').innerHTML = ""; addSetRow(); updateHeatmap(); renderWeekBar(); alert("Logged!");
 }
 
-// REST TIMER
 function updateTimerDisplay() {
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
@@ -366,16 +357,12 @@ function toggleTimer() {
 function adjustTimer(amt) { timeLeft = Math.max(0, timeLeft + amt); updateTimerDisplay(); }
 function resetTimer() { clearInterval(timerInterval); timerRunning = false; timeLeft = 0; updateTimerDisplay(); document.getElementById('timerToggle').innerText = "START"; }
 
-// JUMP TO MONTH LOGIC
 function jumpToMonth(monthId) {
     if (!monthId) return;
     const element = document.getElementById(monthId);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (element) { element.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 }
 
-// HISTORY - UPDATED FOR SPLITS & MONTHS
 function renderHistory() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const historyContainer = document.getElementById('historyLogs');
@@ -396,18 +383,14 @@ function renderHistory() {
     });
 
     for (const [month, splits] of Object.entries(groups)) {
-        // Create unique ID for the dropdown navigation
         const monthId = month.replace(/\s+/g, '');
-        
-        // Add option to dropdown
         const opt = document.createElement('option');
-        opt.value = monthId;
-        opt.innerText = month;
+        opt.value = monthId; opt.innerText = month;
         monthJump.appendChild(opt);
 
         const monthHeader = document.createElement('div');
         monthHeader.className = 'history-month-header';
-        monthHeader.id = monthId; // ID for scrolling
+        monthHeader.id = monthId;
         monthHeader.innerText = month;
         historyContainer.appendChild(monthHeader);
 
@@ -418,14 +401,28 @@ function renderHistory() {
                 groupDiv.className = 'history-split-group';
                 let color = splitName === 'Pull' ? "var(--pull)" : (splitName === 'Legs' ? "var(--legs)" : "var(--accent)");
                 groupDiv.innerHTML = `<div class="history-split-label" style="color:${color}">${splitName}</div>`;
-                splitLogs.forEach(l => {
+                
+                splitLogs.forEach((l, index) => {
                     const logDate = new Date(l.date).toLocaleDateString(undefined, { day: 'numeric', weekday: 'short' });
+                    const setRows = l.sets.map((s, i) => `<tr><td>Set ${i + 1}</td><td><b>${s.kg}kg</b></td><td><b>${s.reps}</b> reps</td></tr>`).join('');
+                    const logId = `log-${monthId}-${splitName}-${index}`;
+                    
                     groupDiv.innerHTML += `
-                        <div class="workout-card">
-                            <span class="label-text">${logDate}</span>
+                        <div class="workout-card" onclick="toggleDetails('${logId}')" style="cursor:pointer;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <b style="font-size:15px;">${l.name}</b> 
-                                <span style="font-size:12px; color:var(--text-sub); background:var(--input-bg); padding:4px 8px; border-radius:6px;">${l.sets.length} Sets</span>
+                                <div>
+                                    <span class="label-text" style="margin:0">${logDate}</span>
+                                    <b style="font-size:15px; display:block;">${l.name}</b> 
+                                </div>
+                                <div style="text-align:right;">
+                                    <span style="font-size:12px; color:var(--text-sub); background:var(--input-bg); padding:4px 8px; border-radius:6px;">${l.sets.length} Sets ▼</span>
+                                </div>
+                            </div>
+                            <div id="${logId}" class="details-container">
+                                <table class="details-table">
+                                    <thead><tr><th>SET</th><th>WEIGHT</th><th>REPS</th></tr></thead>
+                                    <tbody>${setRows}</tbody>
+                                </table>
                             </div>
                         </div>`;
                 });
@@ -435,7 +432,11 @@ function renderHistory() {
     }
 }
 
-// ANALYTICS
+function toggleDetails(id) {
+    const container = document.getElementById(id);
+    container.classList.toggle('open');
+}
+
 function filterStats(split, element) {
     currentStatFilter = split;
     document.querySelectorAll('.stats-nav-item').forEach(i => i.classList.remove('active'));
