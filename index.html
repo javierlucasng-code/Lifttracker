@@ -90,7 +90,7 @@
         }
 
         /* INPUTS & BUTTONS */
-        .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 0px; display: flex; align-items: center; justify-content: space-between; }
         .timer-display { font-size: 22px; font-weight: 900; color: var(--accent); font-family: monospace; }
         .timer-btn { background: var(--input-bg); border: 1px solid var(--border); color: white; padding: 8px 6px; border-radius: 8px; font-size: 10px; cursor: pointer; min-width: 45px; }
 
@@ -101,7 +101,7 @@
         select, .set-row input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg); color: white; font-size: 15px; outline: none; }
         .set-row { display: grid; grid-template-columns: 1fr 1fr 30px; gap: 12px; margin-bottom: 12px; align-items: center; }
 
-        .btn-primary { background: var(--accent); color: #000; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: #000; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; margin-bottom: 15px; }
         .btn-secondary { background: var(--card); color: white; border: 1px solid var(--border); width: 100%; padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 12px; }
         .btn-danger { background: rgba(255, 77, 77, 0.05); color: var(--danger); border: 1px solid var(--danger); width: 100%; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: 900; }
 
@@ -153,6 +153,9 @@
     <div id="logTable"></div>
     <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
 
+    <!-- LOG SESSION IS NOW ABOVE TIMER -->
+    <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
+
     <div class="timer-container">
         <div><span class="label-text" style="margin:0">Rest</span><div id="timerDisplay" class="timer-display">00:00</div></div>
         <div style="display:flex; gap:4px;">
@@ -161,8 +164,6 @@
             <button class="timer-btn" onclick="adjustTimer(30)">+30s</button>
         </div>
     </div>
-    
-    <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
 </div>
 
 <!-- HISTORY SCREEN -->
