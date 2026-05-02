@@ -139,7 +139,6 @@
 
     <div class="scroll-calendar" id="weekBar"></div>
     
-    <!-- Updated Recovery Heatmap UI -->
     <div id="freshnessHeatmap" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px;"></div>
     
     <div class="toggle-container">
@@ -153,7 +152,6 @@
     <div id="logTable"></div>
     <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
 
-    <!-- LOG SESSION IS NOW ABOVE TIMER -->
     <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
 
     <div class="timer-container">
@@ -186,6 +184,11 @@
     <h2 style="color: var(--accent);">Settings</h2>
     <div class="workout-card">
         <button class="btn-secondary" onclick="exportData()">DOWNLOAD BACKUP</button>
+        
+        <!-- NEW UPLOAD DATA FEATURE -->
+        <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">UPLOAD DATA</button>
+        
         <button class="btn-danger" onclick="resetDatabase()">RESET DATA</button>
     </div>
 </div>
@@ -212,33 +215,25 @@ const splitExercises = {
     'Legs': ['Leg Extensions', 'Hack Squat', 'Hamstring Curl', 'RDL', 'Abdductors', 'Calf Raises', 'Abs']
 };
 
-// --- MODAL CALENDAR ---
 function openCalendar() {
     const modal = document.getElementById('calendarModal');
     const grid = document.getElementById('calendarGrid');
     const monthLabel = document.getElementById('modalMonthLabel');
     const logs = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-    
     grid.innerHTML = '';
     modal.style.display = 'flex';
-    
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     monthLabel.innerText = selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-
     ['S','M','T','W','T','F','S'].forEach(d => grid.innerHTML += `<div class="cal-day-name">${d}</div>`);
-
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     for(let i=0; i<firstDay; i++) grid.innerHTML += `<div></div>`;
-
     for(let d=1; d<=daysInMonth; d++) {
         const dateObj = new Date(year, month, d);
         const hasLog = logs.some(l => new Date(l.date).toDateString() === dateObj.toDateString());
         const isSelected = dateObj.toDateString() === selectedDate.toDateString();
         const isToday = dateObj.toDateString() === new Date().toDateString();
-
         const cell = document.createElement('div');
         cell.className = `cal-cell ${isSelected ? 'selected' : ''} ${hasLog ? 'has-log' : ''} ${isToday ? 'today' : ''}`;
         cell.innerText = d;
@@ -248,12 +243,10 @@ function openCalendar() {
 }
 function closeCalendar() { document.getElementById('calendarModal').style.display = 'none'; }
 
-// --- UI NAVIGATION ---
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(id + 'Screen').style.display = 'block';
-    
     const navItems = document.querySelectorAll('.nav-item');
     if(id === 'workout') { navItems[0].classList.add('active'); renderWeekBar(); updateHeatmap();}
     if(id === 'history') { navItems[1].classList.add('active'); renderHistory(); }
@@ -261,22 +254,18 @@ function showScreen(id) {
     if(id === 'profile') navItems[3].classList.add('active');
 }
 
-// --- CORE APP LOGIC ---
 function renderWeekBar() {
     const weekBar = document.getElementById('weekBar');
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     weekBar.innerHTML = '';
     document.getElementById('currentDateDisplay').innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-    
     const start = new Date(selectedDate);
     start.setDate(selectedDate.getDate() - 10);
-    
     for (let i = 0; i < 21; i++) {
         const day = new Date(start);
         day.setDate(start.getDate() + i);
         const hasLog = db.some(l => new Date(l.date).toDateString() === day.toDateString());
         const isSel = day.toDateString() === selectedDate.toDateString();
-        
         const pill = document.createElement('div');
         pill.className = `date-pill ${isSel ? 'active' : ''} ${hasLog ? 'has-workout' : ''}`;
         pill.onclick = () => { selectedDate = day; renderWeekBar(); };
@@ -310,47 +299,30 @@ function saveWorkout() {
         kg: parseFloat(r.querySelector('.ki').value) || 0, 
         reps: parseInt(r.querySelector('.ri').value) || 0
     })).filter(s => s.kg > 0);
-    
     if(!sets.length) return;
     let db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     db.push({ name: ex, routine: currentRoutine, date: selectedDate.toISOString(), sets });
     localStorage.setItem('gymLogs', JSON.stringify(db));
-    
     document.getElementById('logTable').innerHTML = ""; 
-    addSetRow();
-    updateHeatmap();
-    renderWeekBar();
-    alert("Session Logged!");
+    addSetRow(); updateHeatmap(); renderWeekBar(); alert("Session Logged!");
 }
 
-// --- NEW MUSCLE RECOVERY LOGIC ---
 function updateHeatmap() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     const container = document.getElementById('freshnessHeatmap');
     container.innerHTML = '';
-    
-    const RECOVERY_TIME_HRS = 48; // Standard muscle recovery window
-
+    const RECOVERY_TIME_HRS = 48; 
     ['Push', 'Pull', 'Legs'].forEach(r => {
         const last = db.filter(l => l.routine === r).sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-        
-        let status = "READY";
-        let color = "var(--accent)";
-        let progress = 100;
-        let subtitle = "Full Power";
-
+        let status = "READY", color = "var(--accent)", progress = 100, subtitle = "Full Power";
         if(last) {
             const hrsSince = (new Date() - new Date(last.date)) / 3600000;
             if(hrsSince < RECOVERY_TIME_HRS) {
                 progress = (hrsSince / RECOVERY_TIME_HRS) * 100;
-                status = "RECOVERING";
-                color = "var(--warning)";
+                status = "RECOVERING"; color = "var(--warning)";
                 subtitle = `${Math.floor(RECOVERY_TIME_HRS - hrsSince)}h left`;
             }
-        } else {
-            subtitle = "No Logs Yet";
-        }
-
+        } else { subtitle = "No Logs Yet"; }
         container.innerHTML += `
             <div class="recovery-card">
                 <span class="label-text" style="font-size:9px; margin:0;">${r}</span>
@@ -361,7 +333,6 @@ function updateHeatmap() {
     });
 }
 
-// --- HISTORY & STATS ---
 function renderHistory() {
     const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     document.getElementById('historyLogs').innerHTML = db.slice().reverse().map(l => `
@@ -382,7 +353,6 @@ function renderStats() {
     });
     const sortedDates = Object.keys(dailyVolume).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
     const chartData = sortedDates.map(d => dailyVolume[d]);
-
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
@@ -394,7 +364,6 @@ function renderStats() {
     });
 }
 
-// --- TIMER ---
 function updateTimerDisplay() {
     const mins = Math.floor(timeLeft / 60); const secs = timeLeft % 60;
     document.getElementById('timerDisplay').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -412,9 +381,41 @@ function toggleTimer() {
 function resetTimer() { clearInterval(timerInterval); timerRunning = false; timeLeft = 0; updateTimerDisplay(); }
 function adjustTimer(amt) { timeLeft = Math.max(0, timeLeft + amt); updateTimerDisplay(); }
 
-// --- SETTINGS ---
+// --- SETTINGS LOGIC ---
 function resetDatabase() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
-function exportData() { const blob = new Blob([localStorage.getItem('gymLogs') || '[]'], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); }
+
+function exportData() { 
+    const blob = new Blob([localStorage.getItem('gymLogs') || '[]'], {type:'application/json'}); 
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
+    a.download = `backup_${new Date().toLocaleDateString()}.json`; a.click(); 
+}
+
+// Logic to handle file upload
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            if (!Array.isArray(importedData)) throw new Error("Invalid Format");
+            
+            let currentData = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+            
+            // Simple merge: Combine and remove identical entries based on stringified content
+            const combined = [...currentData, ...importedData];
+            const uniqueData = Array.from(new Set(combined.map(a => JSON.stringify(a)))).map(a => JSON.parse(a));
+            
+            localStorage.setItem('gymLogs', JSON.stringify(uniqueData));
+            alert("Upload Successful! Data Merged.");
+            location.reload(); // Refresh to update all UI components
+        } catch (err) {
+            alert("Error: File is not a valid backup JSON.");
+        }
+    };
+    reader.readAsText(file);
+}
 
 renderWeekBar(); updateDropdown(); addSetRow(); updateHeatmap();
 </script>
