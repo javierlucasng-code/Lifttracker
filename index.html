@@ -24,26 +24,18 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- UPDATED SWIPEABLE CALENDAR --- */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; position: relative; }
         .month-label { color: var(--accent); font-weight: bold; font-size: 18px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
         
         .scroll-calendar { 
-            display: flex; 
-            gap: 12px; 
-            padding: 10px 0 20px 0;
-            overflow-x: auto; /* Enables swiping */
-            scroll-snap-type: x mandatory; 
-            -webkit-overflow-scrolling: touch; 
-            scrollbar-width: none; /* Hide scrollbar Firefox */
+            display: flex; gap: 12px; padding: 10px 0 20px 0;
+            overflow-x: auto; scroll-snap-type: x mandatory; 
+            -webkit-overflow-scrolling: touch; scrollbar-width: none; 
         }
-        .scroll-calendar::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome/Safari */
+        .scroll-calendar::-webkit-scrollbar { display: none; }
 
         .date-pill {
-            min-width: 55px; /* Slightly wider for better touch targets */
-            height: 80px; 
-            background: var(--card); 
-            border-radius: 20px;
+            min-width: 55px; height: 80px; background: var(--card); border-radius: 20px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; flex-shrink: 0; border: 1px solid var(--border); transition: 0.2s;
             scroll-snap-align: start;
@@ -51,7 +43,6 @@
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
 
-        /* --- REST OF UI --- */
         .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
         .timer-display { font-size: 22px; font-weight: 900; color: var(--accent); font-family: monospace; }
         .timer-controls { display: flex; gap: 4px; }
@@ -83,16 +74,14 @@
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
         <div style="display: flex; flex-direction: column;">
-            <span class="label-text" style="margin-bottom: 2px;">Workout Date</span>
+            <span class="label-text">Workout Date</span>
             <div class="month-label" onclick="triggerDatePicker()" style="cursor: pointer;">
-                <span id="currentDateDisplay">Today</span>
-                <span style="font-size: 12px; margin-left: 5px;">▼</span>
+                <span id="currentDateDisplay">Today</span> <span style="font-size: 12px;">▼</span>
             </div>
         </div>
         <input type="date" id="hiddenDatePicker" onchange="jumpToSpecificDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none;">
     </div>
 
-    <!-- Swipeable Area -->
     <div class="scroll-calendar" id="weekBar"></div>
     
     <div id="freshnessHeatmap" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px;"></div>
@@ -109,10 +98,7 @@
     <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
 
     <div class="timer-container">
-        <div>
-            <span class="label-text" style="margin:0">Rest</span>
-            <div id="timerDisplay" class="timer-display">00:00</div>
-        </div>
+        <div><span class="label-text" style="margin:0">Rest</span><div id="timerDisplay" class="timer-display">00:00</div></div>
         <div class="timer-controls">
             <button class="timer-btn" onclick="adjustTimer(-30)">-30s</button>
             <button id="timerToggle" class="timer-btn" style="color:var(--accent)" onclick="toggleTimer()">START</button>
@@ -124,9 +110,26 @@
     <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
 </div>
 
-<div id="historyScreen" class="screen"><h2 style="color: var(--accent);">History</h2><div id="historyLogs"></div></div>
-<div id="statsScreen" class="screen"><h2 style="color: var(--accent);">Analytics</h2><div class="workout-card"><canvas id="progressChart"></canvas></div></div>
-<div id="profileScreen" class="screen"><h2 style="color: var(--accent);">Settings</h2><div class="workout-card"><button class="btn-secondary" onclick="exportData()">DOWNLOAD BACKUP</button><button class="btn-danger" onclick="resetDatabase()">RESET DATA</button></div></div>
+<div id="historyScreen" class="screen">
+    <h2 style="color: var(--accent);">History</h2>
+    <div id="historyLogs"></div>
+</div>
+
+<div id="statsScreen" class="screen">
+    <h2 style="color: var(--accent);">Analytics</h2>
+    <div class="workout-card">
+        <span class="label-text">Daily Volume Progress</span>
+        <div style="height: 250px;"><canvas id="progressChart"></canvas></div>
+    </div>
+</div>
+
+<div id="profileScreen" class="screen">
+    <h2 style="color: var(--accent);">Settings</h2>
+    <div class="workout-card">
+        <button class="btn-secondary" onclick="exportData()">DOWNLOAD BACKUP</button>
+        <button class="btn-danger" onclick="resetDatabase()">RESET DATA</button>
+    </div>
+</div>
 
 <nav class="navbar">
     <div class="nav-item active" onclick="showScreen('workout')"><svg viewBox="0 0 24 24"><path d="M6 12h12M6 8h12M6 16h12M2 12h2M20 12h2M5 4v16M19 4v16"/></svg></div>
@@ -141,6 +144,7 @@ let timeLeft = 0;
 let timerRunning = false;
 let timerInterval;
 let selectedDate = new Date(); 
+let myChart = null;
 
 const splitExercises = {
     'Push': ['Flat Bench Press', 'Incline DB Press', 'Incline Smith Press', 'Tricep Extension', 'Overhead Press'],
@@ -149,43 +153,24 @@ const splitExercises = {
 };
 
 function triggerDatePicker() { document.getElementById('hiddenDatePicker').showPicker(); }
-
-function jumpToSpecificDate(val) {
-    if(!val) return;
-    selectedDate = new Date(val);
-    renderWeekBar();
-}
+function jumpToSpecificDate(val) { if(!val) return; selectedDate = new Date(val); renderWeekBar(); }
 
 function renderWeekBar() {
     const weekBar = document.getElementById('weekBar');
     const dateDisplay = document.getElementById('currentDateDisplay');
     weekBar.innerHTML = '';
-    
     dateDisplay.innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-
-    // Generate 14 days (current week + next week) to make it swipeable
     const start = new Date(selectedDate);
-    start.setDate(selectedDate.getDate() - 3); // Start 3 days ago
-
+    start.setDate(selectedDate.getDate() - 3);
     for (let i = 0; i < 14; i++) {
-        const day = new Date(start);
-        day.setDate(start.getDate() + i);
+        const day = new Date(start); day.setDate(start.getDate() + i);
         const isSelected = day.toDateString() === selectedDate.toDateString();
-        
         const pill = document.createElement('div');
         pill.className = `date-pill ${isSelected ? 'active' : ''}`;
         pill.onclick = () => { selectedDate = day; renderWeekBar(); };
-
-        pill.innerHTML = `
-            <span class="label-text" style="margin:0; font-size:10px;">${day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-            <div class="date-circle">${day.getDate()}</div>
-        `;
+        pill.innerHTML = `<span class="label-text" style="margin:0; font-size:10px;">${day.toLocaleDateString('en-US', { weekday: 'short' })}</span><div class="date-circle">${day.getDate()}</div>`;
         weekBar.appendChild(pill);
-        
-        // Auto-scroll to selected date
-        if(isSelected) {
-            setTimeout(() => pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 50);
-        }
+        if(isSelected) setTimeout(() => pill.scrollIntoView({ behavior: 'smooth', inline: 'center' }), 50);
     }
 }
 
@@ -213,23 +198,97 @@ function saveWorkout() {
         kg: parseFloat(r.querySelector('.ki').value) || 0, 
         reps: parseInt(r.querySelector('.ri').value) || 0
     })).filter(s => s.kg > 0);
-    
     if(!sets.length) return;
     let db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
     db.push({ name: ex, routine: currentRoutine, date: selectedDate.toISOString(), sets });
     localStorage.setItem('gymLogs', JSON.stringify(db));
-    
     document.getElementById('logTable').innerHTML = ""; addSetRow();
     updateHeatmap();
-    alert(`Logged for ${selectedDate.toLocaleDateString()}`);
+    alert(`Logged ${ex}!`);
 }
 
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id + 'Screen').style.display = 'block';
+    const navItems = document.querySelectorAll('.nav-item');
+    if(id === 'workout') navItems[0].classList.add('active');
+    if(id === 'history') { navItems[1].classList.add('active'); renderHistory(); }
+    if(id === 'stats') { navItems[2].classList.add('active'); renderStats(); }
+    if(id === 'profile') navItems[3].classList.add('active');
+}
+
+function renderHistory() {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    document.getElementById('historyLogs').innerHTML = db.slice().reverse().map(l => `
+        <div class="workout-card">
+            <span class="label-text">${new Date(l.date).toLocaleDateString()} — ${l.routine}</span>
+            <div style="display:flex; justify-content:space-between;"><b>${l.name}</b> <span>${l.sets.length} Sets</span></div>
+        </div>`).join('');
+}
+
+function renderStats() {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const canvas = document.getElementById('progressChart');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // Group volume by Date
+    const dailyVolume = {};
+    db.forEach(log => {
+        const d = new Date(log.date).toLocaleDateString();
+        const vol = log.sets.reduce((s, set) => s + (set.kg * set.reps), 0);
+        dailyVolume[d] = (dailyVolume[d] || 0) + vol;
+    });
+
+    const sortedDates = Object.keys(dailyVolume).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
+    const chartData = sortedDates.map(d => dailyVolume[d]);
+
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Total Volume',
+                data: chartData,
+                borderColor: '#00ff41',
+                backgroundColor: 'rgba(0, 255, 65, 0.1)',
+                fill: true,
+                tension: 0.3,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: '#222' }, ticks: { color: '#8b949e' } },
+                x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+            }
+        }
+    });
+}
+
+function updateHeatmap() {
+    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
+    const container = document.getElementById('freshnessHeatmap');
+    if(!container) return;
+    container.innerHTML = '';
+    ['Push', 'Pull', 'Legs'].forEach(r => {
+        const last = db.filter(l => l.routine === r).sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+        const hrs = last ? Math.floor((new Date() - new Date(last.date)) / 3600000) : 999;
+        const color = hrs > 48 ? "var(--success)" : (hrs > 24 ? "var(--warning)" : "var(--danger)");
+        container.innerHTML += `<div style="border:1px solid ${color}; padding:10px; border-radius:12px; text-align:center; background:var(--input-bg);"><span class="label-text" style="color:var(--text-sub); font-size:9px; margin:0;">${r}</span><b style="color:${color}; font-size:13px;">${hrs > 48 ? 'GO' : hrs+'h'}</b></div>`;
+    });
+}
+
+/* TIMER LOGIC */
 function updateTimerDisplay() {
-    const mins = Math.floor(timeLeft / 60);
-    const secs = timeLeft % 60;
+    const mins = Math.floor(timeLeft / 60); const secs = timeLeft % 60;
     document.getElementById('timerDisplay').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
-
 function toggleTimer() {
     const btn = document.getElementById('timerToggle');
     if (timerRunning) { clearInterval(timerInterval); btn.innerText = "START"; btn.style.color = "var(--accent)"; } 
@@ -240,33 +299,12 @@ function toggleTimer() {
     }
     timerRunning = !timerRunning;
 }
-
 function resetTimer() { clearInterval(timerInterval); timerRunning = false; timeLeft = 0; updateTimerDisplay(); document.getElementById('timerToggle').innerText = "START"; document.getElementById('timerToggle').style.color = "var(--accent)"; }
 function adjustTimer(amt) { timeLeft = Math.max(0, timeLeft + amt); updateTimerDisplay(); }
 
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(id + 'Screen').style.display = 'block';
-    const idx = {workout:0, history:1, stats:2, profile:3}[id];
-    document.querySelectorAll('.nav-item')[idx].classList.add('active');
-}
-
-function updateHeatmap() {
-    const db = JSON.parse(localStorage.getItem('gymLogs') || '[]');
-    const container = document.getElementById('freshnessHeatmap');
-    container.innerHTML = '';
-    ['Push', 'Pull', 'Legs'].forEach(r => {
-        const last = db.filter(l => l.routine === r).sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-        const hrs = last ? Math.floor((new Date() - new Date(last.date)) / 3600000) : 999;
-        const color = hrs > 48 ? "var(--success)" : (hrs > 24 ? "var(--warning)" : "var(--danger)");
-        container.innerHTML += `<div style="border:1px solid ${color}; padding:10px; border-radius:12px; text-align:center; background:var(--input-bg);"><span class="label-text" style="color:var(--text-sub); font-size:9px; margin:0;">${r}</span><b style="color:${color}; font-size:13px;">${hrs > 48 ? 'GO' : hrs+'h'}</b></div>`;
-    });
-}
-
 function resetDatabase() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
+function exportData() { const blob = new Blob([localStorage.getItem('gymLogs') || '[]'], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `elite_backup.json`; a.click(); }
 
-// Run Initial
 renderWeekBar(); updateDropdown(); addSetRow(); updateHeatmap();
 </script>
 </body>
