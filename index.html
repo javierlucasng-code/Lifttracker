@@ -46,19 +46,18 @@
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
 
-        /* GYM DAY HIGHLIGHT */
+        /* GYM DAY HIGHLIGHT DOT */
         .date-pill.has-workout::after {
             content: '';
             position: absolute;
             bottom: 8px;
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
             background: var(--accent);
             border-radius: 50%;
             box-shadow: 0 0 8px var(--accent);
         }
 
-        /* UI ELEMENTS */
         .timer-container { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
         .timer-display { font-size: 22px; font-weight: 900; color: var(--accent); font-family: monospace; }
         .timer-controls { display: flex; gap: 4px; }
@@ -183,15 +182,16 @@ function renderWeekBar() {
     
     dateDisplay.innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     
+    // Renders 21 days total (7 before, current, and 13 after) for better visibility
     const start = new Date(selectedDate);
-    start.setDate(selectedDate.getDate() - 3);
+    start.setDate(selectedDate.getDate() - 7);
     
     for (let i = 0; i < 21; i++) {
         const day = new Date(start);
         day.setDate(start.getDate() + i);
         const isSelected = day.toDateString() === selectedDate.toDateString();
         
-        // Highlight logic: Check if any log matches this date
+        // Highlight logic: Scan logs for a date match
         const hasWorkout = db.some(log => new Date(log.date).toDateString() === day.toDateString());
         
         const pill = document.createElement('div');
@@ -244,7 +244,7 @@ function saveWorkout() {
     document.getElementById('logTable').innerHTML = ""; 
     addSetRow();
     updateHeatmap();
-    renderWeekBar(); // Refresh highlights
+    renderWeekBar(); // Updates the calendar dot immediately
     alert(`Logged to ${selectedDate.toLocaleDateString()}`);
 }
 
