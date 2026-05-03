@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Elite Tracker Pro</title>
@@ -28,23 +27,24 @@
         body { 
             margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background: var(--bg); color: var(--text-main); 
-            /* UPDATED: Increased top padding to accommodate the lower header position */
-            padding-top: calc(90px + env(safe-area-inset-top));
+            /* UPDATED: Reduced top padding to pull the calendar back up */
+            padding-top: calc(75px + env(safe-area-inset-top));
             padding-bottom: calc(115px + env(safe-area-inset-bottom)); overflow-x: hidden; 
         }
 
-        /* UPDATED: Increased header height and added bottom padding to drop the logo lower */
+        /* UPDATED: Reduced header height and bottom padding to bring the logo higher */
         .top-header-nav {
             position: fixed; top: 0; left: 0; right: 0;
-            height: calc(85px + env(safe-area-inset-top)); 
+            height: calc(70px + env(safe-area-inset-top)); 
             background: var(--glass-bg);
             backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
             display: flex; align-items: flex-end; justify-content: center;
-            padding: 0 20px 15px 20px; z-index: 3000;
+            padding: 0 20px 8px 20px; z-index: 3000;
         }
-        /* UPDATED: Adjusted logo font size and line-height */
+        
         .app-logo { font-weight: 900; font-size: 20px; letter-spacing: -1px; line-height: 1; }
 
+        /* Remaining CSS unchanged */
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
