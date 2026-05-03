@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -27,24 +27,35 @@
         body { 
             margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background: var(--bg); color: var(--text-main); 
-            /* UPDATED: Reduced top padding to pull the calendar back up */
-            padding-top: calc(75px + env(safe-area-inset-top));
-            padding-bottom: calc(115px + env(safe-area-inset-bottom)); overflow-x: hidden; 
+            /* UPDATED: Pulled content higher and adjusted bottom padding for the new navbar */
+            padding-top: calc(65px + env(safe-area-inset-top));
+            padding-bottom: calc(80px + env(safe-area-inset-bottom)); overflow-x: hidden; 
         }
 
-        /* UPDATED: Reduced header height and bottom padding to bring the logo higher */
+        /* UPDATED: Minimalist header to save space */
         .top-header-nav {
             position: fixed; top: 0; left: 0; right: 0;
-            height: calc(70px + env(safe-area-inset-top)); 
+            height: calc(60px + env(safe-area-inset-top)); 
             background: var(--glass-bg);
             backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
             display: flex; align-items: flex-end; justify-content: center;
-            padding: 0 20px 8px 20px; z-index: 3000;
+            padding: 0 20px 5px 20px; z-index: 3000;
         }
         
-        .app-logo { font-weight: 900; font-size: 20px; letter-spacing: -1px; line-height: 1; }
+        .app-logo { font-weight: 900; font-size: 19px; letter-spacing: -1px; line-height: 1; }
 
-        /* Remaining CSS unchanged */
+        /* FIXED NAVBAR: Locked to the absolute bottom to prevent moving between pages */
+        .navbar { 
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            display: flex; background: var(--glass-bg); 
+            backdrop-filter: blur(20px); border-top: 1px solid var(--border);
+            padding: 10px 0 calc(10px + env(safe-area-inset-bottom)) 0; 
+            justify-content: space-around; z-index: 2000; 
+        }
+        .nav-item { color: #555; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .nav-item svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+        .nav-item.active { color: var(--accent); }
+
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -117,10 +128,6 @@
         .w-upper { transform: translateX(300%); width: 20% !important; }
         .w-lower { transform: translateX(400%); width: 20% !important; }
 
-        .navbar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; display: flex; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; padding: 12px 0; justify-content: space-around; z-index: 2000; }
-        .nav-item { color: #555; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
-        .nav-item svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
-        .nav-item.active { color: var(--accent); transform: translateY(-4px); }
         .timer-btn { background: var(--input-bg); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 8px; font-size: 11px; flex: 1; font-weight: bold; }
         
         .history-search-container { margin-bottom: 15px; }
