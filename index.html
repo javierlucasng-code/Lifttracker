@@ -138,6 +138,12 @@
         .cal-day-box.has-workout { color: var(--accent); text-decoration: underline; }
         .cal-day-box.selected { background: var(--accent); color: #000; }
         .cal-weekday { font-size: 10px; color: var(--text-sub); text-align: center; padding-bottom: 5px; font-weight: 800; }
+
+        /* RPE TABLE STYLING */
+        .rpe-table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--text-main); margin-top: 10px; }
+        .rpe-table td { padding: 8px; border-bottom: 1px solid var(--border); }
+        .rpe-table .rpe-num { font-weight: 900; color: var(--accent); width: 45px; }
+        .rpe-table .rpe-desc { color: var(--text-sub); }
     </style>
 </head>
 <body>
@@ -274,6 +280,20 @@
 <!-- SETTINGS SCREEN -->
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
+    
+    <!-- RPE EXPLANATION CARD -->
+    <div class="workout-card" style="padding: 20px;">
+        <span class="label-text">RPE Scale (Rate of Perceived Exertion)</span>
+        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px; line-height: 1.4;">The RPE scale measures how hard you're working. It helps you track effort and manage fatigue based on "Reps in Reserve" (RIR).</p>
+        <table class="rpe-table">
+            <tr><td class="rpe-num">10</td><td class="rpe-desc">Maximum Effort. Zero reps left in the tank.</td></tr>
+            <tr><td class="rpe-num">9</td><td class="rpe-desc">Hard. Could have done 1 more rep.</td></tr>
+            <tr><td class="rpe-num">8</td><td class="rpe-desc">Heavy. Could have done 2 more reps.</td></tr>
+            <tr><td class="rpe-num">7</td><td class="rpe-desc">Moderate. Could have done 3 more reps.</td></tr>
+            <tr><td class="rpe-num">6</td><td class="rpe-desc">Light. Could have done 4+ more reps.</td></tr>
+        </table>
+    </div>
+
     <div class="workout-card" style="padding: 20px;">
         <input type="file" id="importFileInput" style="display: none;" accept=".json" onchange="handleImport(this)">
         <button class="btn-secondary" onclick="document.getElementById('importFileInput').click()">IMPORT (.JSON)</button>
@@ -292,7 +312,7 @@
 
 <script>
 let selectedDate = new Date();
-let overlayDisplayDate = new Date(); // To track month navigation inside overlay
+let overlayDisplayDate = new Date(); 
 let currentRoutine = 'Push';
 let statsFilter = 'all'; 
 let weightChart = null, pieChart = null, heatmapChart = null;
