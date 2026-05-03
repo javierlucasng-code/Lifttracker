@@ -36,7 +36,6 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* PERFORMANCE SUMMARY GRID */
         .stats-summary-grid {
             display: grid; grid-template-columns: repeat(2, 1fr);
             gap: 12px; margin-bottom: 20px;
@@ -117,34 +116,11 @@
         .history-note { font-size: 11px; color: var(--accent); font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
         .prev-note-display { background: var(--selected-pill); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; border: 1px solid rgba(0, 255, 65, 0.3); display: none; }
         
-        /* Mobile visibility fix for RPE and Log Table */
-        #logTable input { 
-            width: 100%; 
-            touch-action: manipulation; 
-            font-size: 14px; 
-        }
+        #logTable input { width: 100%; touch-action: manipulation; font-size: 14px; }
 
-        /* RPE Slider Styling */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type="range"]::-webkit-slider-runnable-track {
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            margin-top: -7px;
-            box-shadow: 0 0 5px var(--accent);
-        }
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--border); border-radius: 2px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -7px; box-shadow: 0 0 5px var(--accent); }
     </style>
 </head>
 <body>
@@ -178,7 +154,7 @@
     </div>
     
     <div id="prevNoteDisplay" class="prev-note-display"></div>
-    <textarea id="exNote" class="ex-note-input" placeholder="Add exercise notes (e.g. slow eccentric, seat height 5)..." rows="2"></textarea>
+    <textarea id="exNote" class="ex-note-input" placeholder="Add exercise notes..." rows="2"></textarea>
 
     <div id="logTable"></div>
     <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
@@ -208,18 +184,7 @@
         <span class="label-text">Search by Month</span>
         <select id="monthFilter" onchange="renderHistory()">
             <option value="all">Show All Time</option>
-            <option value="0">January</option>
-            <option value="1">February</option>
-            <option value="2">March</option>
-            <option value="3">April</option>
-            <option value="4">May</option>
-            <option value="5">June</option>
-            <option value="6">July</option>
-            <option value="7">August</option>
-            <option value="8">September</option>
-            <option value="9">October</option>
-            <option value="10">November</option>
-            <option value="11">December</option>
+            <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
         </select>
     </div>
     <div id="historyLogs"></div>
@@ -229,24 +194,6 @@
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
 
-    <div id="statsSummary" class="stats-summary-grid">
-        <div class="summary-item">
-            <span class="stat-label">Total Vol (All Time)</span>
-            <span id="totalVolumeAll" class="stat-big-value">0</span>
-            <span class="stat-unit">kg</span>
-        </div>
-        <div class="summary-item">
-            <span class="stat-label">Best Session</span>
-            <span id="bestSessionVol" class="stat-big-value">0</span>
-            <span class="stat-unit">kg</span>
-        </div>
-        <div class="summary-item" style="grid-column: span 2;">
-            <span class="stat-label">Avg Volume / Workout</span>
-            <span id="avgVolWorkout" class="stat-big-value">0</span>
-            <span class="stat-unit">kg</span>
-        </div>
-    </div>
-
     <div class="toggle-container" style="background: var(--card);">
         <div id="statsSlider" class="toggle-slider pos-all" style="width: 25%;"></div>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('all', 'pos-all')">ALL</button>
@@ -255,8 +202,14 @@
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('Legs', 'pos-legs')">LEGS</button>
     </div>
 
+    <div id="statsSummary" class="stats-summary-grid">
+        <div class="summary-item"><span class="stat-label">Total Vol</span><span id="totalVolumeAll" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
+        <div class="summary-item"><span class="stat-label">Best Session</span><span id="bestSessionVol" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
+        <div class="summary-item" style="grid-column: span 2;"><span class="stat-label">Avg Volume / Workout</span><span id="avgVolWorkout" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
+    </div>
+
     <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">Weekly Volume Progression</span>
+        <span class="label-text">12-Week Consistency Graph</span>
         <div style="height: 140px;"><canvas id="intensityHeatmap"></canvas></div>
     </div>
     <div class="workout-card" style="padding: 20px;">
@@ -269,29 +222,20 @@
 <!-- WEIGHT TRACKER SCREEN -->
 <div id="weightScreen" class="screen">
     <h2 style="color: var(--accent);">Weight Tracker</h2>
-    <div class="workout-card" style="padding: 20px;">
-        <div style="height: 250px;"><canvas id="weightChart"></canvas></div>
-    </div>
+    <div class="workout-card" style="padding: 20px;"><div style="height: 250px;"><canvas id="weightChart"></canvas></div></div>
     <div class="workout-card" style="padding: 15px;">
         <span class="label-text">Health Profile</span>
         <div style="display:flex; gap:10px; margin-bottom: 12px;">
             <input type="number" id="userHeightInput" placeholder="Height (cm)" style="flex:1; padding:14px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px; background: var(--card); color: var(--accent); border: 1px solid var(--accent);" onclick="saveHeight()">SET HEIGHT</button>
+            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px; background: var(--card); color: var(--accent); border: 1px solid var(--accent);" onclick="saveHeight()">SET</button>
         </div>
         <div style="display:flex; gap:10px;">
             <input type="number" id="bodyWeightInput" placeholder="Weight (kg)" style="flex:1; padding:14px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px;" onclick="saveWeight()">LOG WEIGHT</button>
+            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px;" onclick="saveWeight()">LOG</button>
         </div>
         <div class="health-grid">
-            <div class="health-stat-box">
-                <span class="label-text">Current BMI</span>
-                <span id="bmiDisplay" class="stat-value">--</span>
-            </div>
-            <div class="health-stat-box">
-                <span class="label-text">Daily Calories</span>
-                <span id="calDisplay" class="stat-value">--</span>
-                <span style="font-size: 8px; color: var(--text-sub);">(Maintenance)</span>
-            </div>
+            <div class="health-stat-box"><span class="label-text">BMI</span><span id="bmiDisplay" class="stat-value">--</span></div>
+            <div class="health-stat-box"><span class="label-text">Calories</span><span id="calDisplay" class="stat-value">--</span></div>
         </div>
     </div>
 </div>
@@ -300,7 +244,7 @@
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
 
-    <!-- RPE Explanation Dropdown -->
+     <!-- RPE Explanation Dropdown -->
     <div class="workout-card" style="padding: 0; overflow: hidden; border-color: var(--accent); margin-bottom: 20px;">
         <details style="width: 100%;">
             <summary style="padding: 15px; cursor: pointer; font-weight: 800; font-size: 14px; color: var(--accent); list-style: none; display: flex; justify-content: space-between; align-items: center;">
@@ -318,11 +262,11 @@
             </div>
         </details>
     </div>
-
+    
     <div class="workout-card" style="padding: 20px;">
         <input type="file" id="importFileInput" style="display: none;" accept=".json" onchange="handleImport(this)">
-        <button class="btn-secondary" onclick="document.getElementById('importFileInput').click()">IMPORT BACKUP (.JSON)</button>
-        <button class="btn-secondary" onclick="exportData()">EXPORT BACKUP (.JSON)</button>
+        <button class="btn-secondary" onclick="document.getElementById('importFileInput').click()">IMPORT (.JSON)</button>
+        <button class="btn-secondary" onclick="exportData()">EXPORT (.JSON)</button>
         <button class="btn-secondary" style="border-color: var(--danger); color: var(--danger);" onclick="confirmErase()">ERASE ALL DATA</button>
     </div>
 </div>
@@ -432,28 +376,8 @@ function promptNewExercise() {
 
 function addSetRow() {
     const div = document.createElement('div');
-    // Updated Grid: 2 columns. Left side for Inputs/Slider stack, Right side for 'X' button[cite: 4]
     div.style = "display:grid; grid-template-columns: 1fr 40px; gap:8px; margin-bottom:15px; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid var(--border);";
-    
-    div.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <!-- Top Row: KG and REPS -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <input type="number" placeholder="kg" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white; width: 100%;"> 
-                <input type="number" placeholder="reps" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white; width: 100%;">
-            </div>
-            
-            <!-- Bottom Row: RPE Slider -->
-            <div style="display: flex; align-items: center; gap: 10px; background: var(--input-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border);">
-                <span style="font-size: 10px; color: var(--accent); font-weight: bold; font-family: monospace; white-space: nowrap;">RPE <span class="rpe-val">7.5</span></span>
-                <input type="range" min="5" max="10" step="0.5" value="7.5" 
-                    style="flex: 1; accent-color: var(--accent); margin: 0; cursor: pointer;" 
-                    oninput="updateRpeDisplay(this)">
-            </div>
-        </div>
-
-        <button class="remove-set-btn" onclick="this.parentElement.remove()">✕</button>`;
-    
+    div.innerHTML = `<div style="display: flex; flex-direction: column; gap: 10px;"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"><input type="number" placeholder="kg" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white; width: 100%;"> <input type="number" placeholder="reps" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white; width: 100%;"></div><div style="display: flex; align-items: center; gap: 10px; background: var(--input-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border);"><span style="font-size: 10px; color: var(--accent); font-weight: bold; font-family: monospace; white-space: nowrap;">RPE <span class="rpe-val">7.5</span></span><input type="range" min="5" max="10" step="0.5" value="7.5" style="flex: 1; accent-color: var(--accent); margin: 0; cursor: pointer;" oninput="updateRpeDisplay(this)"></div></div><button class="remove-set-btn" onclick="this.parentElement.remove()">✕</button>`;
     document.getElementById('logTable').appendChild(div);
 }
 
@@ -464,41 +388,23 @@ function updateRpeDisplay(slider) {
 function saveWorkout() {
     const rows = Array.from(document.getElementById('logTable').children);
     const sets = rows.map(row => {
-        // Corrected mapping based on new stacked div structure[cite: 4]
         const inputsContainer = row.children[0];
         const kgRepsRow = inputsContainer.children[0];
         const weight = kgRepsRow.children[0].value;
         const reps = kgRepsRow.children[1].value;
-        
-        const rpeRow = inputsContainer.children[1];
-        const rpeInput = rpeRow.querySelector('input[type="range"]');
-        const rpe = rpeInput ? rpeInput.value : null;
-        
-        return { weight, reps, rpe };
+        const rpeInput = inputsContainer.children[1].querySelector('input[type="range"]');
+        return { weight, reps, rpe: rpeInput.value };
     }).filter(s => s.weight && s.reps);
 
     if (sets.length === 0) return alert("Please enter weight and reps!");
     
-    const note = document.getElementById('exNote').value.trim();
-    const log = { 
-        id: Date.now(), 
-        date: selectedDate.toISOString(), 
-        exercise: document.getElementById('exSelect').value, 
-        routine: currentRoutine, 
-        sets: sets, 
-        note: note 
-    };
-
+    const log = { id: Date.now(), date: selectedDate.toISOString(), exercise: document.getElementById('exSelect').value, routine: currentRoutine, sets: sets, note: document.getElementById('exNote').value.trim() };
     let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     history.push(log);
     localStorage.setItem('workoutLogs', JSON.stringify(history));
     
     alert("Session Logged!");
-    document.getElementById('logTable').innerHTML = '';
-    document.getElementById('exNote').value = ''; 
-    addSetRow();
-    renderWeekBar();
-    updatePreviousNote();
+    document.getElementById('logTable').innerHTML = ''; addSetRow(); renderWeekBar();
 }
 
 function toggleTimer() {
@@ -517,10 +423,9 @@ function renderHistory() {
     container.innerHTML = '';
     const filteredLogs = filterMonth === 'all' ? logs : logs.filter(log => log.date && new Date(log.date).getMonth() == filterMonth);
     const grouped = filteredLogs.reduce((acc, log) => {
-        const dObj = log.date ? new Date(log.date) : null;
-        const displayDate = (dObj && !isNaN(dObj)) ? dObj.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }) : "Unknown Date";
-        const storageDateString = (dObj && !isNaN(dObj)) ? dObj.toDateString() : "Unknown";
-        if (!acc[displayDate]) acc[displayDate] = { storageDateString, items: [] }; 
+        const dObj = new Date(log.date);
+        const displayDate = dObj.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+        if (!acc[displayDate]) acc[displayDate] = { storageDateString: dObj.toDateString(), items: [] }; 
         acc[displayDate].items.push(log); 
         return acc;
     }, {});
@@ -529,18 +434,18 @@ function renderHistory() {
         const dayGroupId = displayKey.replace(/[^a-z0-9]/gi, '-'); 
         const dayGroup = document.createElement('div');
         dayGroup.className = 'history-day-group';
-        dayGroup.innerHTML = `<div class="swipe-container" id="container-day-${dayGroupId}"><div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div><div class="swipe-content" style="background: var(--card);" ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')"><div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')"><span>${displayKey}</span><span>${dayData.items.length} Exercises ▼</span></div></div></div><div class="history-content">${dayData.items.map(log => `<div class="swipe-container" id="container-${log.id}"><div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div><div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0; display:block;" ontouchstart="handleTouchStart(event, '${log.id}')" ontouchmove="handleTouchMove(event, '${log.id}')" ontouchend="handleTouchEnd(event, '${log.id}')"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}${s.rpe ? ` <span style="color:var(--accent)">@${s.rpe}</span>` : ''}</div>`).join('')}</div>${log.note ? `<div class="history-note">Note: ${log.note}</div>` : ''}</div></div>`).join('')}</div>`;
+        dayGroup.innerHTML = `<div class="swipe-container" id="container-day-${dayGroupId}"><div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div><div class="swipe-content" style="background: var(--card);" ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')"><div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')"><span>${displayKey}</span><span>${dayData.items.length} Exercises ▼</span></div></div></div><div class="history-content">${dayData.items.map(log => `<div class="swipe-container" id="container-${log.id}"><div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div><div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0; display:block;" ontouchstart="handleTouchStart(event, '${log.id}')" ontouchmove="handleTouchMove(event, '${log.id}')" ontouchend="handleTouchEnd(event, '${log.id}')"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps} @${s.rpe}</div>`).join('')}</div></div></div>`).join('')}</div>`;
         container.appendChild(dayGroup);
     });
 }
 
 let touchStartX = 0, touchCurrentX = 0;
-function handleTouchStart(e, id) { touchStartX = e.touches[0].clientX; const content = document.querySelector(`#container-${id} .swipe-content`); if(content) content.style.transition = 'none'; }
+function handleTouchStart(e, id) { touchStartX = e.touches[0].clientX; }
 function handleTouchMove(e, id) { touchCurrentX = e.touches[0].clientX; const diff = touchStartX - touchCurrentX; const content = document.querySelector(`#container-${id} .swipe-content`); if (content && diff > 0 && diff < 100) content.style.transform = `translateX(-${diff}px)`; }
 function handleTouchEnd(e, id) { const content = document.querySelector(`#container-${id} .swipe-content`); if(!content) return; content.style.transition = 'transform 0.3s ease'; const diff = touchStartX - touchCurrentX; if (diff > 50) content.style.transform = 'translateX(-80px)'; else content.style.transform = 'translateX(0)'; }
 
-function deleteWorkout(id) { if(!confirm("Delete this exercise entry?")) return; let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]'); history = history.filter(log => log.id !== id); localStorage.setItem('workoutLogs', JSON.stringify(history)); renderHistory(); renderWeekBar(); }
-function deleteDay(storageDateString) { if(!confirm(`Delete ALL workouts for ${storageDateString}?`)) return; let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]'); history = history.filter(log => { const d = log.date ? new Date(log.date).toDateString() : "Unknown"; return d !== storageDateString; }); localStorage.setItem('workoutLogs', JSON.stringify(history)); renderHistory(); renderWeekBar(); }
+function deleteWorkout(id) { let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]'); history = history.filter(log => log.id !== id); localStorage.setItem('workoutLogs', JSON.stringify(history)); renderHistory(); }
+function deleteDay(storageDateString) { let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]'); history = history.filter(log => new Date(log.date).toDateString() !== storageDateString); localStorage.setItem('workoutLogs', JSON.stringify(history)); renderHistory(); }
 
 function renderPerformanceStats() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
@@ -551,9 +456,7 @@ function renderPerformanceStats() {
     filteredLogs.forEach(log => {
         if (!exerciseHistory[log.exercise]) exerciseHistory[log.exercise] = [];
         let totalVol = 0; log.sets.forEach(s => totalVol += (parseFloat(s.weight) * parseFloat(s.reps)));
-        const dateObj = log.date ? new Date(log.date) : null;
-        const label = (dateObj && !isNaN(dateObj)) ? dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "N/A";
-        exerciseHistory[log.exercise].push({ date: label, val: totalVol });
+        exerciseHistory[log.exercise].push({ date: new Date(log.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), val: totalVol });
     });
     for (const [ex, data] of Object.entries(exerciseHistory)) {
         const canvasId = `chart-${ex.replace(/\s+/g, '-')}`;
@@ -571,40 +474,32 @@ function calculateSummaryStats() {
     const sessions = {};
     logs.forEach(log => {
         let sessionVol = 0;
-        log.sets.forEach(s => {
-            const vol = (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0);
-            sessionVol += vol; totalAll += vol;
-        });
+        log.sets.forEach(s => { const vol = (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0); sessionVol += vol; totalAll += vol; });
         const dateKey = new Date(log.date).toDateString();
         sessions[dateKey] = (sessions[dateKey] || 0) + sessionVol;
     });
-    const sessionValues = Object.values(sessions);
-    if (sessionValues.length > 0) bestSession = Math.max(...sessionValues);
+    const vals = Object.values(sessions);
+    if (vals.length > 0) bestSession = Math.max(...vals);
     document.getElementById('totalVolumeAll').innerText = totalAll.toLocaleString();
     document.getElementById('bestSessionVol').innerText = bestSession.toLocaleString();
-    document.getElementById('avgVolWorkout').innerText = sessionValues.length > 0 ? Math.round(totalAll / sessionValues.length).toLocaleString() : 0;
+    document.getElementById('avgVolWorkout').innerText = vals.length > 0 ? Math.round(totalAll / vals.length).toLocaleString() : 0;
 }
 
-function saveHeight() { const height = document.getElementById('userHeightInput').value; if(height) localStorage.setItem('userHeight', height); updateHealthStats(); }
+function saveHeight() { localStorage.setItem('userHeight', document.getElementById('userHeightInput').value); updateHealthStats(); }
 function updateHealthStats() {
-    const height = localStorage.getItem('userHeight');
-    if(height) document.getElementById('userHeightInput').value = height;
+    const height = localStorage.getItem('userHeight'); if(height) document.getElementById('userHeightInput').value = height;
     const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
     if(data.length === 0 || !height) return;
-    const currentWeight = data[data.length - 1].value;
-    const heightInMeters = height / 100;
-    const bmi = (currentWeight / (heightInMeters * heightInMeters)).toFixed(1);
-    document.getElementById('bmiDisplay').innerText = bmi;
-    const calories = Math.round((10 * currentWeight) + (6.25 * height) - (5 * 25) + 5) * 1.375;
-    document.getElementById('calDisplay').innerText = Math.round(calories);
+    const cw = data[data.length - 1].value;
+    document.getElementById('bmiDisplay').innerText = (cw / ((height/100)**2)).toFixed(1);
+    document.getElementById('calDisplay').innerText = Math.round(((10 * cw) + (6.25 * height) - 125) * 1.375);
 }
 
 function saveWeight() {
-    const weight = document.getElementById('bodyWeightInput').value;
-    if(!weight) return;
-    let bodyWeights = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
-    bodyWeights.push({ date: new Date().toISOString(), value: parseFloat(weight) });
-    localStorage.setItem('bodyWeightLogs', JSON.stringify(bodyWeights));
+    const w = document.getElementById('bodyWeightInput').value; if(!w) return;
+    let bwl = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
+    bwl.push({ date: new Date().toISOString(), value: parseFloat(w) });
+    localStorage.setItem('bodyWeightLogs', JSON.stringify(bwl));
     renderWeightChart(); updateHealthStats();
 }
 
@@ -612,8 +507,7 @@ function renderWeightChart() {
     const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
     const ctx = document.getElementById('weightChart').getContext('2d');
     if(weightChart) weightChart.destroy();
-    const labels = data.map(d => { const dObj = d.date ? new Date(d.date) : null; return (dObj && !isNaN(dObj)) ? dObj.toLocaleDateString() : "New"; });
-    weightChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Weight', data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    weightChart = new Chart(ctx, { type: 'line', data: { labels: data.map(d => new Date(d.date).toLocaleDateString()), datasets: [{ label: 'Weight', data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
 }
 
 function renderSplitChart() {
@@ -626,37 +520,53 @@ function renderSplitChart() {
 
 function renderHeatmap() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    const weeklyVol = {};
+    const today = new Date();
+    const weeks = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - (today.getDay() + (i * 7)));
+        d.setHours(0, 0, 0, 0);
+        const key = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        weeks.push({ key: key, timestamp: d.getTime(), volume: 0 });
+    }
     logs.forEach(l => {
-        const d = l.date ? new Date(l.date) : new Date();
-        const week = new Date(new Date(d).setDate(d.getDate() - d.getDay())).toLocaleDateString();
-        weeklyVol[week] = (weeklyVol[week] || 0) + l.sets.reduce((sum, s) => sum + (parseFloat(s.weight) * parseFloat(s.reps)), 0);
+        const logDate = new Date(l.date).getTime();
+        const volume = l.sets.reduce((sum, s) => sum + (parseFloat(s.weight) * parseFloat(s.reps) || 0), 0);
+        weeks.forEach(w => {
+            const weekEnd = w.timestamp + (7 * 24 * 60 * 60 * 1000);
+            if (logDate >= w.timestamp && logDate < weekEnd) { w.volume += volume; }
+        });
+    });
+    const colors = weeks.map(w => {
+        if (w.volume > 15000) return '#00ff41';
+        if (w.volume > 8000) return '#008822';
+        if (w.volume > 1) return '#004411';
+        return '#1a1a1a';
     });
     if(heatmapChart) heatmapChart.destroy();
-    heatmapChart = new Chart(document.getElementById('intensityHeatmap'), { type: 'bar', data: { labels: Object.keys(weeklyVol).slice(-6), datasets: [{ label: 'Weekly Volume', data: Object.values(weeklyVol).slice(-6), backgroundColor: '#00ff41' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    heatmapChart = new Chart(document.getElementById('intensityHeatmap'), { 
+        type: 'bar', 
+        data: { labels: weeks.map(w => w.key), datasets: [{ label: 'Weekly Vol (kg)', data: weeks.map(w => w.volume), backgroundColor: colors, borderRadius: 4 }] }, 
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => ` ${context.parsed.y.toLocaleString()} kg` } } }, scales: { y: { display: false, beginAtZero: true }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 9 } } } } } 
+    });
 }
 
 function handleImport(input) {
-    const file = input.files[0];
-    if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            if (confirm("Merge imported data with current logs?")) {
-                Object.keys(importedData).forEach(key => localStorage.setItem(key, importedData[key]));
-                location.reload();
-            }
-        } catch (err) { alert("Error: Invalid backup file."); }
+        const data = JSON.parse(e.target.result);
+        Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+        location.reload();
     };
-    reader.readAsText(file);
+    reader.readAsText(input.files[0]);
 }
 
-function confirmErase() { if (confirm("Delete all data?")) { localStorage.clear(); location.reload(); } }
 function exportData() {
     const blob = new Blob([JSON.stringify(localStorage)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
 }
+
+function confirmErase() { if (confirm("Delete all?")) { localStorage.clear(); location.reload(); } }
 
 window.onload = () => { updateDropdown(); addSetRow(); renderWeekBar(); updateHealthStats(); };
 </script>
