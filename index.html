@@ -59,7 +59,6 @@
         .calendar-header { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
         .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; width: fit-content; }
 
-        /* NEW TODAY BUTTON STYLE */
         .today-btn {
             background: var(--selected-pill); border: 1px solid var(--accent); color: var(--accent);
             font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 6px; cursor: pointer;
@@ -103,14 +102,11 @@
         .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; overflow: hidden;}
         .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
         
-        /* UPDATED SLIDER POSITION CLASSES FOR 5 OPTIONS */
-        .pos-all { transform: translateX(0); width: 20% !important; }
-        .pos-push { transform: translateX(100%); width: 20% !important; }
-        .pos-pull { transform: translateX(200%); width: 20% !important; }
-        .pos-legs { transform: translateX(300%); width: 20% !important; }
-        .pos-extra { transform: translateX(400%); width: 20% !important; } /* generic catch-all */
+        .pos-all { transform: translateX(0); width: 25% !important; }
+        .pos-push { transform: translateX(100%); width: 25% !important; }
+        .pos-pull { transform: translateX(200%); width: 25% !important; }
+        .pos-legs { transform: translateX(300%); width: 25% !important; }
 
-        /* WORKOUT SCREEN SLIDER */
         .w-push { transform: translateX(0); width: 20% !important; }
         .w-pull { transform: translateX(100%); width: 20% !important; }
         .w-legs { transform: translateX(200%); width: 20% !important; }
@@ -162,7 +158,6 @@
         .cal-day-box.selected { background: var(--accent); color: #000; }
         .cal-weekday { font-size: 10px; color: var(--text-sub); text-align: center; padding-bottom: 5px; font-weight: 800; }
 
-        /* RPE TABLE STYLING */
         .rpe-table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--text-main); margin-top: 10px; }
         .rpe-table td { padding: 8px; border-bottom: 1px solid var(--border); }
         .rpe-table .rpe-num { font-weight: 900; color: var(--accent); width: 45px; }
@@ -210,7 +205,6 @@
     </div>
     <div class="scroll-calendar" id="weekBar"></div>
     
-    <!-- UPDATED SCIENCE APPLIED SPLIT TOGGLE -->
     <div class="toggle-container">
         <div id="mainSlider" class="toggle-slider w-push"></div>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Push', 'mainSlider', 'w-push')">PUSH</button>
@@ -266,7 +260,7 @@
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
     <div class="toggle-container" style="background: var(--card);">
-        <div id="statsSlider" class="toggle-slider pos-all" style="width: 25%;"></div>
+        <div id="statsSlider" class="toggle-slider pos-all"></div>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('all', 'pos-all')">ALL</button>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('Push', 'pos-push')">PUSH</button>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('Pull', 'pos-pull')">PULL</button>
@@ -313,7 +307,6 @@
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
     
-    <!-- RPE EXPLANATION CARD -->
     <div class="workout-card" style="padding: 20px;">
         <span class="label-text">RPE Scale (Rate of Perceived Exertion)</span>
         <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px; line-height: 1.4;">The RPE scale measures how hard you're working. It helps you track effort and manage fatigue based on "Reps in Reserve" (RIR).</p>
@@ -350,7 +343,6 @@ let statsFilter = 'all';
 let weightChart = null, pieChart = null, heatmapChart = null;
 let timeLeft = 0, timerRunning = false, timerInterval;
 
-// UPDATED SCIENCE APPLIED EXERCISE LIST
 const splitExercises = JSON.parse(localStorage.getItem('customExercises')) || {
     'Push': ['Bench Press', 'Incline DB Press', 'Lateral Raises', 'Tricep Pushdowns', 'OHP'],
     'Pull': ['Pull-Ups', 'Barbell Rows', 'Facepulls', 'DB Bicep Curls', 'Lat Pulldown'],
@@ -533,7 +525,29 @@ function renderHistory() {
         const dayGroupId = displayKey.replace(/[^a-z0-9]/gi, '-'); 
         const dayGroup = document.createElement('div');
         dayGroup.className = 'history-day-group';
-        dayGroup.innerHTML = `<div class="swipe-container" id="container-day-${dayGroupId}"><div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div><div class="swipe-content" style="background: var(--card);" ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')"><div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')"><span>${displayKey}</span><span>${dayData.items.length} Exercises ▼</span></div></div></div><div class="history-content">${dayData.items.map(log => `<div class="swipe-container" id="container-${log.id}"><div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div><div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0; display:block;" ontouchstart="handleTouchStart(event, '${log.id}')" ontouchmove="handleTouchMove(event, '${log.id}')" ontouchend="handleTouchEnd(event, '${log.id}')"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps} @${s.rpe}</div>`).join('')}</div></div></div>`).join('')}</div>`;
+        dayGroup.innerHTML = `
+            <div class="swipe-container" id="container-day-${dayGroupId}">
+                <div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div>
+                <div class="swipe-content" style="background: var(--card);" ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')">
+                    <div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')">
+                        <span>${displayKey}</span>
+                        <span>${dayData.items.length} Exercises ▼</span>
+                    </div>
+                </div>
+            </div>
+            <div class="history-content">
+                ${dayData.items.map(log => `
+                    <div class="swipe-container" id="container-${log.id}">
+                        <div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div>
+                        <div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0; display:block;" ontouchstart="handleTouchStart(event, '${log.id}')" ontouchmove="handleTouchMove(event, '${log.id}')" ontouchend="handleTouchEnd(event, '${log.id}')">
+                            <span class="label-text">${log.exercise}</span>
+                            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                                ${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps} @${s.rpe}</div>`).join('')}
+                            </div>
+                            ${log.note ? `<div class="history-note">${log.note}</div>` : ''}
+                        </div>
+                    </div>`).join('')}
+            </div>`;
         container.appendChild(dayGroup);
     });
 }
