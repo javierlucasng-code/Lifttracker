@@ -36,9 +36,14 @@
         .screen { padding: 15px; display: none; max-width: 500px; margin: auto; animation: fadeIn 0.1s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .calendar-header { margin-bottom: 15px; cursor: pointer; }
-        .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .calendar-header { margin-bottom: 15px; }
+        .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; position: relative; }
         
+        /* Added for Month Selection */
+        .month-selector-input {
+            position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; left: 0; top: 0;
+        }
+
         .scroll-calendar { 
             display: flex; gap: 12px; padding: 10px 0 20px 0;
             overflow-x: auto; scroll-snap-type: x mandatory; 
@@ -54,6 +59,12 @@
         }
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
+
+        /* GYM DAY HIGHLIGHT DOT */
+        .gym-dot {
+            width: 5px; height: 5px; background: var(--accent); border-radius: 50%;
+            position: absolute; bottom: 8px; box-shadow: 0 0 5px var(--accent);
+        }
 
         .remove-set-btn {
             background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.3);
@@ -103,8 +114,13 @@
 <!-- WORKOUT SCREEN -->
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
-        <span class="label-text">Select Date</span>
-        <div class="month-label"><span id="currentDateDisplay">Today</span> <span style="font-size: 12px; color: var(--text-sub);">▼</span></div>
+        <span class="label-text">Tap Date to Select Month</span>
+        <div class="month-label">
+            <span id="currentDateDisplay">Today</span> 
+            <span style="font-size: 12px; color: var(--text-sub);">▼</span>
+            <!-- Hidden Month Input for native picker -->
+            <input type="month" class="month-selector-input" id="monthPicker" onchange="jumpToMonth(this.value)">
+        </div>
     </div>
     <div class="scroll-calendar" id="weekBar"></div>
     
@@ -289,25 +305,59 @@ function showScreen(id) {
     if(id === 'profile') updateStorageInfo();
 }
 
-// --- APP CORE LOGIC ---
+// --- CALENDAR ENHANCEMENTS ---
 
-function setRoutine(n, s, p) { currentRoutine = n; document.getElementById(s).className = 'toggle-slider ' + p; updateDropdown(); }
-function updateDropdown() { document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); }
+function jumpToMonth(val) {
+    if(!val) return;
+    const [year, month] = val.split('-');
+    selectedDate = new Date(year, month - 1, 1);
+    renderWeekBar();
+}
 
 function renderWeekBar() {
     const bar = document.getElementById('weekBar');
     bar.innerHTML = '';
-    document.getElementById('currentDateDisplay').innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    const start = new Date(selectedDate); start.setDate(selectedDate.getDate() - 5);
-    for(let i=0; i<11; i++) {
+    
+    // Header Label
+    document.getElementById('currentDateDisplay').innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', year: 'numeric', day: 'numeric' });
+    
+    // Check workout logs for highlighing
+    const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    const workoutDates = logs.map(l => new Date(l.date).toDateString());
+
+    // Show 30 days around selected date for better navigation
+    const start = new Date(selectedDate); 
+    start.setDate(selectedDate.getDate() - 15);
+
+    for(let i=0; i<31; i++) {
         const d = new Date(start); d.setDate(start.getDate() + i);
         const p = document.createElement('div');
-        p.className = `date-pill ${d.toDateString() === selectedDate.toDateString() ? 'active' : ''}`;
-        p.innerHTML = `<span class="label-text" style="margin:0">${d.toLocaleDateString(undefined,{weekday:'short'})}</span><div class="date-circle">${d.getDate()}</div>`;
+        const dateStr = d.toDateString();
+        
+        p.className = `date-pill ${dateStr === selectedDate.toDateString() ? 'active' : ''}`;
+        
+        let innerHtml = `<span class="label-text" style="margin:0">${d.toLocaleDateString(undefined,{weekday:'short'})}</span><div class="date-circle">${d.getDate()}</div>`;
+        
+        // Add highlight dot if workout exists on this day
+        if(workoutDates.includes(dateStr)) {
+            innerHtml += `<div class="gym-dot"></div>`;
+        }
+
+        p.innerHTML = innerHtml;
         p.onclick = () => { selectedDate = d; renderWeekBar(); };
         bar.appendChild(p);
+        
+        // Auto-scroll to active date
+        if(dateStr === selectedDate.toDateString()) {
+            setTimeout(() => p.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 100);
+        }
     }
 }
+
+// --- APP CORE LOGIC ---
+
+function setRoutine(n, s, p) { currentRoutine = n; document.getElementById(s).className = 'toggle-slider ' + p; updateDropdown(); }
+function updateDropdown() { document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); }
 
 function addSetRow() {
     const unit = localStorage.getItem('preferred_unit') || 'kg';
@@ -330,6 +380,7 @@ function saveWorkout() {
     alert("Session Logged!");
     document.getElementById('logTable').innerHTML = '';
     addSetRow();
+    renderWeekBar(); // Refresh highlights
 }
 
 // --- ANALYTICS ---
