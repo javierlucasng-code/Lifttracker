@@ -49,8 +49,7 @@
         .summary-item .stat-unit { font-size: 12px; color: var(--text-sub); margin-left: 4px; }
 
         .calendar-header { margin-bottom: 15px; }
-        .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; position: relative; }
-        .month-selector-input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; left: 0; top: 0; }
+        .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; width: fit-content; }
 
         .scroll-calendar { 
             display: flex; gap: 12px; padding: 10px 0 20px 0;
@@ -122,7 +121,6 @@
         input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--border); border-radius: 2px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -7px; box-shadow: 0 0 5px var(--accent); }
 
-        /* ADDED: Calendar Overlay Styles */
         .calendar-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 4000;
@@ -148,10 +146,14 @@
     <div class="app-logo">ELITE<span style="color:var(--accent)">PRO</span></div>
 </nav>
 
-<!-- ADDED: Full Calendar Overlay -->
+<!-- Full Calendar Overlay -->
 <div id="calendarOverlay" class="calendar-overlay">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 id="overlayMonthLabel" style="color: var(--accent); margin:0;">SELECT DATE</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button onclick="changeOverlayMonth(-1)" style="background:var(--card); border:1px solid var(--border); color:white; padding:5px 12px; border-radius:8px;">◀</button>
+            <h3 id="overlayMonthLabel" style="color: var(--accent); margin:0; font-size: 16px;">SELECT DATE</h3>
+            <button onclick="changeOverlayMonth(1)" style="background:var(--card); border:1px solid var(--border); color:white; padding:5px 12px; border-radius:8px;">▶</button>
+        </div>
         <button onclick="closeCalendarOverlay()" style="background:none; border:1px solid var(--border); color:white; padding:8px 15px; border-radius:10px;">CLOSE</button>
     </div>
     <div style="display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 5px;">
@@ -169,7 +171,6 @@
         <div class="month-label" onclick="openCalendarOverlay()">
             <span id="currentDateDisplay">Today</span> 
             <span style="font-size: 12px; color: var(--text-sub);">▼</span>
-            <input type="month" class="month-selector-input" id="monthPicker" onchange="jumpToMonth(this.value); event.stopPropagation();">
         </div>
     </div>
     <div class="scroll-calendar" id="weekBar"></div>
@@ -226,7 +227,6 @@
 <!-- PERFORMANCE SCREEN -->
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
-
     <div class="toggle-container" style="background: var(--card);">
         <div id="statsSlider" class="toggle-slider pos-all" style="width: 25%;"></div>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('all', 'pos-all')">ALL</button>
@@ -234,13 +234,11 @@
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('Pull', 'pos-pull')">PULL</button>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('Legs', 'pos-legs')">LEGS</button>
     </div>
-
     <div id="statsSummary" class="stats-summary-grid">
         <div class="summary-item"><span class="stat-label">Total Vol</span><span id="totalVolumeAll" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
         <div class="summary-item"><span class="stat-label">Best Session</span><span id="bestSessionVol" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
         <div class="summary-item" style="grid-column: span 2;"><span class="stat-label">Avg Volume / Workout</span><span id="avgVolWorkout" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
     </div>
-
     <div class="workout-card" style="padding: 20px;">
         <span class="label-text">12-Week Consistency Graph</span>
         <div style="height: 140px;"><canvas id="intensityHeatmap"></canvas></div>
@@ -276,23 +274,6 @@
 <!-- SETTINGS SCREEN -->
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
-    <div class="workout-card" style="padding: 0; overflow: hidden; border-color: var(--accent); margin-bottom: 20px;">
-        <details style="width: 100%;">
-            <summary style="padding: 15px; cursor: pointer; font-weight: 800; font-size: 14px; color: var(--accent); list-style: none; display: flex; justify-content: space-between; align-items: center;">
-                WHAT IS RPE? <span style="font-size: 10px;">▼</span>
-            </summary>
-            <div style="padding: 0 15px 15px 15px; font-size: 13px; line-height: 1.5; color: var(--text-sub);">
-                <p><strong>RPE (Rate of Perceived Exertion)</strong> measures how hard a set felt on a scale of 1-10.</p>
-                <ul style="padding-left: 15px; margin: 10px 0;">
-                    <li><b style="color:var(--accent)">10:</b> Maximal effort. 0 reps left.</li>
-                    <li><b style="color:var(--accent)">9:</b> 1 rep left in the tank.</li>
-                    <li><b style="color:var(--accent)">8:</b> 2 reps left in the tank.</li>
-                    <li><b style="color:var(--accent)">7:</b> 3 reps left (Technical speed).</li>
-                </ul>
-                <p style="font-style: italic; font-size: 11px;">Use this to track intensity and avoid overtraining.</p>
-            </div>
-        </details>
-    </div>
     <div class="workout-card" style="padding: 20px;">
         <input type="file" id="importFileInput" style="display: none;" accept=".json" onchange="handleImport(this)">
         <button class="btn-secondary" onclick="document.getElementById('importFileInput').click()">IMPORT (.JSON)</button>
@@ -311,6 +292,7 @@
 
 <script>
 let selectedDate = new Date();
+let overlayDisplayDate = new Date(); // To track month navigation inside overlay
 let currentRoutine = 'Push';
 let statsFilter = 'all'; 
 let weightChart = null, pieChart = null, heatmapChart = null;
@@ -334,24 +316,25 @@ function showScreen(id) {
     if(id === 'history') renderHistory();
 }
 
-function jumpToMonth(val) {
-    if(!val) return;
-    const [year, month] = val.split('-');
-    selectedDate = new Date(year, month - 1, 1);
-    renderWeekBar();
+function changeOverlayMonth(val) {
+    overlayDisplayDate.setMonth(overlayDisplayDate.getMonth() + val);
+    renderOverlayGrid();
 }
 
-/* ADDED: Full Calendar Overlay Logic */
 function openCalendarOverlay() {
-    const overlay = document.getElementById('calendarOverlay');
+    overlayDisplayDate = new Date(selectedDate);
+    document.getElementById('calendarOverlay').style.display = 'flex';
+    renderOverlayGrid();
+}
+
+function renderOverlayGrid() {
     const grid = document.getElementById('fullCalendarGrid');
     const label = document.getElementById('overlayMonthLabel');
-    overlay.style.display = 'flex';
     grid.innerHTML = '';
     
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    label.innerText = selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const year = overlayDisplayDate.getFullYear();
+    const month = overlayDisplayDate.getMonth();
+    label.innerText = overlayDisplayDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -366,10 +349,11 @@ function openCalendarOverlay() {
         const box = document.createElement('div');
         box.className = `cal-day-box ${isSelected ? 'selected' : ''} ${hasWorkout ? 'has-workout' : ''}`;
         box.innerText = i;
-        box.onclick = () => { selectedDate = d; renderWeekBar(); closeCalendarOverlay(); };
+        box.onclick = () => { selectedDate = new Date(d); renderWeekBar(); closeCalendarOverlay(); };
         grid.appendChild(box);
     }
 }
+
 function closeCalendarOverlay() { document.getElementById('calendarOverlay').style.display = 'none'; }
 
 function renderWeekBar() {
@@ -389,7 +373,7 @@ function renderWeekBar() {
         let innerHtml = `<span class="label-text" style="margin:0">${d.toLocaleDateString(undefined,{weekday:'short'})}</span><div class="date-circle">${d.getDate()}</div>`;
         if(workoutDates.includes(dateStr)) innerHtml += `<div class="gym-dot"></div>`;
         p.innerHTML = innerHtml;
-        p.onclick = () => { selectedDate = d; renderWeekBar(); };
+        p.onclick = () => { selectedDate = new Date(d); renderWeekBar(); };
         bar.appendChild(p);
         if(dateStr === selectedDate.toDateString()) {
             setTimeout(() => p.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 100);
