@@ -48,8 +48,14 @@
         .summary-item .stat-big-value { font-size: 20px; font-weight: 900; color: var(--accent); }
         .summary-item .stat-unit { font-size: 12px; color: var(--text-sub); margin-left: 4px; }
 
-        .calendar-header { margin-bottom: 15px; }
+        .calendar-header { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
         .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; width: fit-content; }
+
+        /* NEW TODAY BUTTON STYLE */
+        .today-btn {
+            background: var(--selected-pill); border: 1px solid var(--accent); color: var(--accent);
+            font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+        }
 
         .scroll-calendar { 
             display: flex; gap: 12px; padding: 10px 0 20px 0;
@@ -160,7 +166,10 @@
             <h3 id="overlayMonthLabel" style="color: var(--accent); margin:0; font-size: 16px;">SELECT DATE</h3>
             <button onclick="changeOverlayMonth(1)" style="background:var(--card); border:1px solid var(--border); color:white; padding:5px 12px; border-radius:8px;">▶</button>
         </div>
-        <button onclick="closeCalendarOverlay()" style="background:none; border:1px solid var(--border); color:white; padding:8px 15px; border-radius:10px;">CLOSE</button>
+        <div style="display: flex; gap: 8px;">
+            <button class="today-btn" onclick="jumpToToday()">TODAY</button>
+            <button onclick="closeCalendarOverlay()" style="background:none; border:1px solid var(--border); color:white; padding:8px 15px; border-radius:10px;">CLOSE</button>
+        </div>
     </div>
     <div style="display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 5px;">
         <div class="cal-weekday">S</div><div class="cal-weekday">M</div><div class="cal-weekday">T</div>
@@ -173,11 +182,14 @@
 <!-- WORKOUT SCREEN -->
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
-        <span class="label-text">Tap Date for Full Calendar</span>
-        <div class="month-label" onclick="openCalendarOverlay()">
-            <span id="currentDateDisplay">Today</span> 
-            <span style="font-size: 12px; color: var(--text-sub);">▼</span>
+        <div>
+            <span class="label-text">Tap Date for Full Calendar</span>
+            <div class="month-label" onclick="openCalendarOverlay()">
+                <span id="currentDateDisplay">Today</span> 
+                <span style="font-size: 12px; color: var(--text-sub);">▼</span>
+            </div>
         </div>
+        <button class="today-btn" onclick="jumpToToday()" style="margin-bottom: 5px;">TODAY</button>
     </div>
     <div class="scroll-calendar" id="weekBar"></div>
     
@@ -323,6 +335,16 @@ const splitExercises = JSON.parse(localStorage.getItem('customExercises')) || {
     'Pull': ['Lat Pulldown', 'Rows', 'Bicep Curls'],
     'Legs': ['Squat', 'Leg Press', 'Calf Raises']
 };
+
+// NEW FUNCTION: JUMP TO TODAY
+function jumpToToday() {
+    selectedDate = new Date();
+    overlayDisplayDate = new Date();
+    renderWeekBar();
+    if (document.getElementById('calendarOverlay').style.display === 'flex') {
+        renderOverlayGrid();
+    }
+}
 
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
