@@ -107,6 +107,15 @@
             justify-content: center; font-weight: bold; font-size: 10px; z-index: 1;
             border-radius: 0 15px 15px 0; text-align: center; line-height: 1.2;
         }
+
+        /* Health Info Grid Styling */
+        .health-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
+        }
+        .health-stat-box {
+            background: var(--input-bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; text-align: center;
+        }
+        .stat-value { font-size: 18px; font-weight: 900; color: var(--accent); display: block; }
     </style>
 </head>
 <body>
@@ -204,10 +213,30 @@
     <div class="workout-card" style="padding: 20px;">
         <div style="height: 250px;"><canvas id="weightChart"></canvas></div>
     </div>
+    
+    <!-- ADDED: Health Profile & Calorie Intake Section[cite: 7] -->
     <div class="workout-card" style="padding: 15px;">
+        <span class="label-text">Health Profile</span>
+        <div style="display:flex; gap:10px; margin-bottom: 12px;">
+            <input type="number" id="userHeightInput" placeholder="Height (cm)" style="flex:1; padding:14px; background:var(--input-bg); border:1px solid var(--border); color:white;">
+            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px; background: var(--card); color: var(--accent); border: 1px solid var(--accent);" onclick="saveHeight()">SET HEIGHT</button>
+        </div>
+        
         <div style="display:flex; gap:10px;">
-            <input type="number" id="bodyWeightInput" placeholder="kg" style="flex:1; padding:14px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px;" onclick="saveWeight()">LOG</button>
+            <input type="number" id="bodyWeightInput" placeholder="Weight (kg)" style="flex:1; padding:14px; background:var(--input-bg); border:1px solid var(--border); color:white;">
+            <button class="btn-primary" style="margin:0; width:auto; padding:0 20px;" onclick="saveWeight()">LOG WEIGHT</button>
+        </div>
+
+        <div class="health-grid">
+            <div class="health-stat-box">
+                <span class="label-text">Current BMI</span>
+                <span id="bmiDisplay" class="stat-value">--</span>
+            </div>
+            <div class="health-stat-box">
+                <span class="label-text">Daily Calories</span>
+                <span id="calDisplay" class="stat-value">--</span>
+                <span style="font-size: 8px; color: var(--text-sub);">(Maintenance)</span>
+            </div>
         </div>
     </div>
 </div>
@@ -235,7 +264,7 @@ let currentRoutine = 'Push';
 let weightChart = null, pieChart = null, heatmapChart = null;
 let timeLeft = 0, timerRunning = false, timerInterval;
 
-// Load existing custom exercises if any[cite: 6]
+// Load existing custom exercises if any[cite: 7]
 const splitExercises = JSON.parse(localStorage.getItem('customExercises')) || {
     'Push': ['Bench Press', 'Incline Press', 'OHP'],
     'Pull': ['Lat Pulldown', 'Rows', 'Bicep Curls'],
@@ -249,7 +278,7 @@ function showScreen(id) {
     document.querySelector(`.nav-item[data-id="${id}"]`).classList.add('active');
     
     if(id === 'workout') renderWeekBar();
-    if(id === 'weight') renderWeightChart();
+    if(id === 'weight') { renderWeightChart(); updateHealthStats(); } // Added updateHealthStats on screen load[cite: 7]
     if(id === 'stats') { renderPerformanceStats(); renderSplitChart(); renderHeatmap(); }
     if(id === 'history') renderHistory();
 }
@@ -296,13 +325,8 @@ function updateDropdown() {
 function promptNewExercise() {
     const newEx = prompt("Enter new exercise name:");
     if (newEx && newEx.trim() !== "") {
-        // Add to current routine object[cite: 6]
         splitExercises[currentRoutine].push(newEx.trim());
-        
-        // Save updated list to storage[cite: 6]
         localStorage.setItem('customExercises', JSON.stringify(splitExercises));
-        
-        // Update UI immediately[cite: 6]
         updateDropdown();
         document.getElementById('exSelect').value = newEx.trim();
     }
@@ -430,7 +454,7 @@ function deleteWorkout(id) {
     if(!confirm("Delete this exercise entry?")) return;
     let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     history = history.filter(log => log.id !== id);
-    localStorage.setItem('workoutLogs', JSON.stringify(history));
+    localStorage.setItem('localStorage', JSON.stringify(history));
     renderHistory();
     renderWeekBar();
 }
@@ -469,6 +493,33 @@ function renderPerformanceStats() {
     }
 }
 
+/* --- ADDED: HEIGHT & HEALTH TRACKING LOGIC[cite: 7] --- */
+function saveHeight() {
+    const height = document.getElementById('userHeightInput').value;
+    if(!height) return alert("Please enter height in cm");
+    localStorage.setItem('userHeight', height);
+    updateHealthStats();
+}
+
+function updateHealthStats() {
+    const height = localStorage.getItem('userHeight');
+    if(height) document.getElementById('userHeightInput').value = height;
+    
+    const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
+    if(data.length === 0 || !height) return;
+    
+    const currentWeight = data[data.length - 1].value;
+    const heightInMeters = height / 100;
+    
+    // BMI = kg / m^2[cite: 7]
+    const bmi = (currentWeight / (heightInMeters * heightInMeters)).toFixed(1);
+    document.getElementById('bmiDisplay').innerText = bmi;
+    
+    // Estimated Maintenance Calorie calculation (Standard TDEE baseline)[cite: 7]
+    const calories = Math.round((10 * currentWeight) + (6.25 * height) - (5 * 25) + 5) * 1.375;
+    document.getElementById('calDisplay').innerText = Math.round(calories);
+}
+
 function saveWeight() {
     const weight = document.getElementById('bodyWeightInput').value;
     if(!weight) return;
@@ -476,7 +527,9 @@ function saveWeight() {
     bodyWeights.push({ date: new Date().toISOString(), value: parseFloat(weight) });
     localStorage.setItem('bodyWeightLogs', JSON.stringify(bodyWeights));
     renderWeightChart();
+    updateHealthStats(); // Refresh stats after logging[cite: 7]
 }
+/* --- END OF HEALTH TRACKING ADDITION --- */
 
 function renderWeightChart() {
     const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
@@ -512,7 +565,7 @@ function exportData() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
 }
 
-window.onload = () => { updateDropdown(); addSetRow(); renderWeekBar(); };
+window.onload = () => { updateDropdown(); addSetRow(); renderWeekBar(); updateHealthStats(); };
 </script>
 </body>
 </html>
