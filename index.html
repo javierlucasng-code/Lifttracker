@@ -101,12 +101,21 @@
         .history-content { display: none; padding: 10px; background: var(--bg); border-top: 1px solid var(--border); }
 
         .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; overflow: hidden;}
-        .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); width: calc(33.33% - 4px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
-        .pos-all { transform: translateX(0); width: 25% !important; }
-        .pos-push { transform: translateX(100%); width: 25% !important; }
-        .pos-pull { transform: translateX(200%); width: 25% !important; }
-        .pos-legs { transform: translateX(300%); width: 25% !important; }
-        .w-push { transform: translateX(0); } .w-pull { transform: translateX(100%); } .w-legs { transform: translateX(200%); }
+        .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
+        
+        /* UPDATED SLIDER POSITION CLASSES FOR 5 OPTIONS */
+        .pos-all { transform: translateX(0); width: 20% !important; }
+        .pos-push { transform: translateX(100%); width: 20% !important; }
+        .pos-pull { transform: translateX(200%); width: 20% !important; }
+        .pos-legs { transform: translateX(300%); width: 20% !important; }
+        .pos-extra { transform: translateX(400%); width: 20% !important; } /* generic catch-all */
+
+        /* WORKOUT SCREEN SLIDER */
+        .w-push { transform: translateX(0); width: 20% !important; }
+        .w-pull { transform: translateX(100%); width: 20% !important; }
+        .w-legs { transform: translateX(200%); width: 20% !important; }
+        .w-upper { transform: translateX(300%); width: 20% !important; }
+        .w-lower { transform: translateX(400%); width: 20% !important; }
 
         .navbar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; display: flex; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; padding: 12px 0; justify-content: space-around; z-index: 2000; }
         .nav-item { color: #555; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
@@ -201,11 +210,14 @@
     </div>
     <div class="scroll-calendar" id="weekBar"></div>
     
+    <!-- UPDATED SCIENCE APPLIED SPLIT TOGGLE -->
     <div class="toggle-container">
         <div id="mainSlider" class="toggle-slider w-push"></div>
-        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:11px;" onclick="setRoutine('Push', 'mainSlider', 'w-push')">PUSH</button>
-        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:11px;" onclick="setRoutine('Pull', 'mainSlider', 'w-pull')">PULL</button>
-        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:11px;" onclick="setRoutine('Legs', 'mainSlider', 'w-legs')">LEGS</button>
+        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Push', 'mainSlider', 'w-push')">PUSH</button>
+        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Pull', 'mainSlider', 'w-pull')">PULL</button>
+        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Legs', 'mainSlider', 'w-legs')">LEGS</button>
+        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Upper', 'mainSlider', 'w-upper')">UPPER</button>
+        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Lower', 'mainSlider', 'w-lower')">LOWER</button>
     </div>
 
     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -338,13 +350,15 @@ let statsFilter = 'all';
 let weightChart = null, pieChart = null, heatmapChart = null;
 let timeLeft = 0, timerRunning = false, timerInterval;
 
+// UPDATED SCIENCE APPLIED EXERCISE LIST
 const splitExercises = JSON.parse(localStorage.getItem('customExercises')) || {
-    'Push': ['Bench Press', 'Incline Press', 'OHP'],
-    'Pull': ['Lat Pulldown', 'Rows', 'Bicep Curls'],
-    'Legs': ['Squat', 'Leg Press', 'Calf Raises']
+    'Push': ['Bench Press', 'Incline DB Press', 'Lateral Raises', 'Tricep Pushdowns', 'OHP'],
+    'Pull': ['Pull-Ups', 'Barbell Rows', 'Facepulls', 'DB Bicep Curls', 'Lat Pulldown'],
+    'Legs': ['Barbell Squat', 'Romanian Deadlift', 'Leg Press', 'Calf Raises', 'Leg Curls'],
+    'Upper': ['Incline Bench', 'Chest Supported Row', 'Lateral Raises', 'Dips', 'Hammer Curls'],
+    'Lower': ['Hack Squat', 'Lying Leg Curl', 'Bulgarian Split Squat', 'Seated Calf Raise']
 };
 
-// NEW FUNCTION: JUMP TO TODAY
 function jumpToToday() {
     selectedDate = new Date();
     overlayDisplayDate = new Date();
@@ -453,6 +467,7 @@ function updatePreviousNote() {
 function promptNewExercise() {
     const newEx = prompt("Enter new exercise name:");
     if (newEx && newEx.trim() !== "") {
+        if(!splitExercises[currentRoutine]) splitExercises[currentRoutine] = [];
         splitExercises[currentRoutine].push(newEx.trim());
         localStorage.setItem('customExercises', JSON.stringify(splitExercises));
         updateDropdown();
@@ -596,10 +611,10 @@ function renderWeightChart() {
 
 function renderSplitChart() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    const counts = { 'Push': 0, 'Pull': 0, 'Legs': 0 };
-    logs.forEach(l => counts[l.routine]++);
+    const counts = { 'Push': 0, 'Pull': 0, 'Legs': 0, 'Upper': 0, 'Lower': 0 };
+    logs.forEach(l => { if(counts[l.routine] !== undefined) counts[l.routine]++; });
     if(pieChart) pieChart.destroy();
-    pieChart = new Chart(document.getElementById('splitPieChart'), { type: 'doughnut', data: { labels: ['Push', 'Pull', 'Legs'], datasets: [{ data: Object.values(counts), backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'] }] }, options: { maintainAspectRatio: false } });
+    pieChart = new Chart(document.getElementById('splitPieChart'), { type: 'doughnut', data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d', '#ffcc00', '#9933ff'] }] }, options: { maintainAspectRatio: false } });
 }
 
 function renderHeatmap() {
