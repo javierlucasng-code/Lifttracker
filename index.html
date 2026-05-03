@@ -39,7 +39,6 @@
         .calendar-header { margin-bottom: 15px; }
         .month-label { color: var(--accent); font-weight: bold; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; position: relative; }
         
-        /* Added for Month Selection */
         .month-selector-input {
             position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; left: 0; top: 0;
         }
@@ -60,7 +59,6 @@
         .date-pill.active { background: var(--selected-pill); border-color: var(--accent); transform: scale(1.05); }
         .date-pill .date-circle { width: 28px; height: 28px; background: var(--input-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-top: 5px; }
 
-        /* GYM DAY HIGHLIGHT DOT */
         .gym-dot {
             width: 5px; height: 5px; background: var(--accent); border-radius: 50%;
             position: absolute; bottom: 8px; box-shadow: 0 0 5px var(--accent);
@@ -118,7 +116,6 @@
         <div class="month-label">
             <span id="currentDateDisplay">Today</span> 
             <span style="font-size: 12px; color: var(--text-sub);">▼</span>
-            <!-- Hidden Month Input for native picker -->
             <input type="month" class="month-selector-input" id="monthPicker" onchange="jumpToMonth(this.value)">
         </div>
     </div>
@@ -184,35 +181,25 @@
 <!-- PERFORMANCE SCREEN -->
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
-    
     <div class="workout-card" style="padding: 20px;">
         <span class="label-text">Weekly Intensity (Tonnage)</span>
         <div style="height: 140px;"><canvas id="intensityHeatmap"></canvas></div>
     </div>
-
     <div class="workout-card" style="padding: 20px;">
         <span class="label-text">Split Distribution (Last 30 Days)</span>
         <div style="height: 180px;"><canvas id="splitPieChart"></canvas></div>
     </div>
-
-    <div class="workout-card" style="padding: 20px; border: 1px solid var(--accent); background: linear-gradient(145deg, #111111, #0a0a0a);">
+    <div class="workout-card" style="padding: 20px; border: 1px solid var(--accent);">
         <span class="label-text" style="color: var(--accent);">1RM Estimate Calculator</span>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
-            <div>
-                <span class="label-text" style="font-size: 9px;">Weight</span>
-                <input type="number" id="calcWeight" placeholder="0" oninput="calculateORM()" style="width:100%; padding:12px; border-radius:10px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-            </div>
-            <div>
-                <span class="label-text" style="font-size: 9px;">Reps</span>
-                <input type="number" id="calcReps" placeholder="0" oninput="calculateORM()" style="width:100%; padding:12px; border-radius:10px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-            </div>
+            <input type="number" id="calcWeight" placeholder="Weight" oninput="calculateORM()" style="width:100%; padding:12px; background:var(--input-bg); border:1px solid var(--border); color:white;">
+            <input type="number" id="calcReps" placeholder="Reps" oninput="calculateORM()" style="width:100%; padding:12px; background:var(--input-bg); border:1px solid var(--border); color:white;">
         </div>
-        <div style="text-align: center; padding-top: 5px;">
+        <div style="text-align: center;">
             <span class="label-text">Estimated 1RM</span>
             <div id="ormResult" style="font-size: 38px; font-weight: 900; color: var(--accent);">0</div>
         </div>
     </div>
-
     <div id="statsList"></div>
 </div>
 
@@ -220,55 +207,22 @@
 <div id="weightScreen" class="screen">
     <h2 style="color: var(--accent);">Weight Tracker</h2>
     <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">Body Weight Progression</span>
-        <div style="height: 250px; margin-top: 10px;"><canvas id="weightChart"></canvas></div>
+        <div style="height: 250px;"><canvas id="weightChart"></canvas></div>
     </div>
     <div class="workout-card" style="padding: 15px;">
-        <span class="label-text">Update Weight for <span id="weightDateLabel">Today</span></span>
         <div style="display:flex; gap:10px;">
-            <input type="number" id="bodyWeightInput" placeholder="kg" style="flex:1; padding:14px; border-radius:12px; border:1px solid var(--border); background:var(--input-bg); color:white;">
+            <input type="number" id="bodyWeightInput" placeholder="kg" style="flex:1; padding:14px; background:var(--input-bg); border:1px solid var(--border); color:white;">
             <button class="btn-primary" style="margin:0; width:auto; padding:0 20px;" onclick="saveWeight()">LOG</button>
         </div>
     </div>
 </div>
 
-<!-- SETTINGS SCREEN (ENHANCED) -->
+<!-- SETTINGS SCREEN -->
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
-    
     <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">App Appearance</span>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px;">
-            <button class="timer-btn" style="border-color: #00ff41; color: #00ff41;" onclick="updateTheme('#00ff41', '#003311')">MATRIX</button>
-            <button class="timer-btn" style="border-color: #0088ff; color: #0088ff;" onclick="updateTheme('#0088ff', '#001a33')">ELECTRIC</button>
-            <button class="timer-btn" style="border-color: #ff4d4d; color: #ff4d4d;" onclick="updateTheme('#ff4d4d', '#330000')">CRIMSON</button>
-        </div>
-    </div>
-
-    <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">Preferences</span>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 14px;">Weight Units</span>
-            <select id="unitToggle" onchange="toggleUnits()" style="background: var(--input-bg); color: white; border: 1px solid var(--border); padding: 8px; border-radius: 8px;">
-                <option value="kg">Metric (kg)</option>
-                <option value="lbs">Imperial (lbs)</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">Data Management</span>
         <button class="btn-secondary" onclick="exportData()">EXPORT BACKUP (.JSON)</button>
-        <label class="btn-secondary" style="display: block; text-align: center; cursor: pointer;">
-            IMPORT BACKUP (.JSON)
-            <input type="file" id="importFile" hidden accept=".json" onchange="importData(event)">
-        </label>
-        <button class="btn-secondary" style="border-color: var(--danger); color: var(--danger); margin-top: 10px;" onclick="confirmErase()">ERASE ALL DATA</button>
-    </div>
-
-    <div style="text-align: center; color: var(--text-sub); font-size: 10px; padding: 10px;">
-        Elite Tracker Pro v2.5<br>
-        Local Storage: <span id="storageInfo">0</span> KB
+        <button class="btn-secondary" style="border-color: var(--danger); color: var(--danger);" onclick="confirmErase()">ERASE ALL DATA</button>
     </div>
 </div>
 
@@ -302,30 +256,27 @@ function showScreen(id) {
     if(id === 'weight') renderWeightChart();
     if(id === 'stats') { renderPerformanceStats(); renderSplitChart(); renderHeatmap(); }
     if(id === 'history') renderHistory();
-    if(id === 'profile') updateStorageInfo();
 }
 
-// --- CALENDAR ENHANCEMENTS ---
-
+// --- CALENDAR & NAV LOGIC ---
 function jumpToMonth(val) {
     if(!val) return;
     const [year, month] = val.split('-');
-    selectedDate = new Date(year, month - 1, 1);
+    const today = new Date();
+    if(parseInt(year) === today.getFullYear() && (parseInt(month)-1) === today.getMonth()) {
+        selectedDate = today;
+    } else {
+        selectedDate = new Date(year, month - 1, 1);
+    }
     renderWeekBar();
 }
 
 function renderWeekBar() {
     const bar = document.getElementById('weekBar');
     bar.innerHTML = '';
-    
-    // Header Label
     document.getElementById('currentDateDisplay').innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', year: 'numeric', day: 'numeric' });
-    
-    // Check workout logs for highlighing
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     const workoutDates = logs.map(l => new Date(l.date).toDateString());
-
-    // Show 30 days around selected date for better navigation
     const start = new Date(selectedDate); 
     start.setDate(selectedDate.getDate() - 15);
 
@@ -333,37 +284,25 @@ function renderWeekBar() {
         const d = new Date(start); d.setDate(start.getDate() + i);
         const p = document.createElement('div');
         const dateStr = d.toDateString();
-        
         p.className = `date-pill ${dateStr === selectedDate.toDateString() ? 'active' : ''}`;
-        
         let innerHtml = `<span class="label-text" style="margin:0">${d.toLocaleDateString(undefined,{weekday:'short'})}</span><div class="date-circle">${d.getDate()}</div>`;
-        
-        // Add highlight dot if workout exists on this day
-        if(workoutDates.includes(dateStr)) {
-            innerHtml += `<div class="gym-dot"></div>`;
-        }
-
+        if(workoutDates.includes(dateStr)) innerHtml += `<div class="gym-dot"></div>`;
         p.innerHTML = innerHtml;
         p.onclick = () => { selectedDate = d; renderWeekBar(); };
         bar.appendChild(p);
-        
-        // Auto-scroll to active date
         if(dateStr === selectedDate.toDateString()) {
             setTimeout(() => p.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 100);
         }
     }
 }
 
-// --- APP CORE LOGIC ---
-
+// --- WORKOUT LOGIC ---
 function setRoutine(n, s, p) { currentRoutine = n; document.getElementById(s).className = 'toggle-slider ' + p; updateDropdown(); }
 function updateDropdown() { document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); }
-
 function addSetRow() {
-    const unit = localStorage.getItem('preferred_unit') || 'kg';
     const div = document.createElement('div');
     div.style = "display:grid; grid-template-columns: 1fr 1fr 40px; gap:10px; margin-bottom:10px;";
-    div.innerHTML = `<input type="number" placeholder="${unit}" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;"> <input type="number" placeholder="reps" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;"> <button class="remove-set-btn" onclick="this.parentElement.remove()">✕</button>`;
+    div.innerHTML = `<input type="number" placeholder="kg" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;"> <input type="number" placeholder="reps" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;"> <button class="remove-set-btn" onclick="this.parentElement.remove()">✕</button>`;
     document.getElementById('logTable').appendChild(div);
 }
 
@@ -380,32 +319,37 @@ function saveWorkout() {
     alert("Session Logged!");
     document.getElementById('logTable').innerHTML = '';
     addSetRow();
-    renderWeekBar(); // Refresh highlights
+    renderWeekBar();
 }
 
-// --- ANALYTICS ---
+// --- TIMER ---
+function toggleTimer() {
+    if(timerRunning) { clearInterval(timerInterval); document.getElementById('timerToggle').innerText = "START"; }
+    else { if(timeLeft <= 0) timeLeft = 90; timerInterval = setInterval(() => { if(timeLeft > 0) { timeLeft--; updateDisplay(); } else { resetTimer(); } }, 1000); document.getElementById('timerToggle').innerText = "STOP"; }
+    timerRunning = !timerRunning;
+}
+function updateDisplay() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timerDisplay').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+function adjustTimer(v) { timeLeft = Math.max(0, timeLeft + v); updateDisplay(); }
+function resetTimer() { clearInterval(timerInterval); timeLeft=0; timerRunning=false; updateDisplay(); document.getElementById('timerToggle').innerText = "START"; }
 
+// --- HISTORY & STATS ---
 function renderHistory() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     const container = document.getElementById('historyLogs');
     const filterMonth = document.getElementById('monthFilter').value;
     container.innerHTML = '';
     const filteredLogs = filterMonth === 'all' ? logs : logs.filter(log => new Date(log.date).getMonth() == filterMonth);
-    if (filteredLogs.length === 0) { container.innerHTML = '<p style="color:var(--text-sub); text-align:center; padding:20px;">No workouts found.</p>'; return; }
     const grouped = filteredLogs.reduce((acc, log) => {
         const d = new Date(log.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
         if (!acc[d]) acc[d] = []; acc[d].push(log); return acc;
     }, {});
     Object.keys(grouped).reverse().forEach(dateKey => {
-        const dayLogs = grouped[dateKey];
         const dayGroup = document.createElement('div');
         dayGroup.className = 'history-day-group';
-        dayGroup.innerHTML = `<div class="history-day-header" onclick="toggleHistoryDay(this)"><span>${dateKey}</span><span style="font-size:12px; color:var(--accent)">${dayLogs.length} Exercises ▼</span></div><div class="history-content">${dayLogs.map(log => `<div class="workout-card" style="padding: 15px;"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span class="label-text" style="color:var(--accent)">${log.exercise}</span></div><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight} x ${s.reps}</div>`).join('')}</div></div>`).join('')}</div>`;
+        dayGroup.innerHTML = `<div class="history-day-header" onclick="this.nextElementSibling.style.display = (this.nextElementSibling.style.display==='block'?'none':'block')"><span>${dateKey}</span><span>${grouped[dateKey].length} Exercises ▼</span></div><div class="history-content">${grouped[dateKey].map(log => `<div class="workout-card" style="padding: 15px;"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}</div>`).join('')}</div></div>`).join('')}</div>`;
         container.appendChild(dayGroup);
     });
 }
-
-function toggleHistoryDay(header) { const content = header.nextElementSibling; content.style.display = content.style.display === 'block' ? 'none' : 'block'; }
 
 function renderPerformanceStats() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
@@ -416,34 +360,28 @@ function renderPerformanceStats() {
         if (!exerciseHistory[log.exercise]) exerciseHistory[log.exercise] = [];
         let dailyMax1RM = 0;
         log.sets.forEach(set => {
-            const w = parseFloat(set.weight), r = parseFloat(set.reps);
-            const orm = w * (1 + r / 30);
+            const orm = parseFloat(set.weight) * (1 + parseFloat(set.reps) / 30);
             if (orm > dailyMax1RM) dailyMax1RM = orm;
         });
         exerciseHistory[log.exercise].push({ date: new Date(log.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), val: Math.round(dailyMax1RM) });
     });
-
-    for (const [exercise, dataPoints] of Object.entries(exerciseHistory)) {
-        const maxVal = Math.max(...dataPoints.map(d => d.val));
+    for (const [ex, data] of Object.entries(exerciseHistory)) {
+        const canvasId = `chart-${ex.replace(/\s+/g, '-')}`;
         const card = document.createElement('div');
         card.className = 'workout-card'; card.style.padding = '18px';
-        const canvasId = `chart-${exercise.replace(/\s+/g, '-').toLowerCase()}`;
-        card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="label-text">${exercise}</span><div class="orm-badge">PR: ${maxVal}</div></div></div><div style="height:160px;"><canvas id="${canvasId}"></canvas></div>`;
+        card.innerHTML = `<span class="label-text">${ex}</span><div style="height:160px;"><canvas id="${canvasId}"></canvas></div>`;
         statsContainer.appendChild(card);
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        new Chart(ctx, { type: 'line', data: { labels: dataPoints.map(d => d.date), datasets: [{ data: dataPoints.map(d => d.val), borderColor: '#00ff41', borderWidth: 3, tension: 0.4, fill: true, backgroundColor: 'rgba(0, 255, 65, 0.08)' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#222' }, ticks: { color: '#8b949e' } }, x: { display: false } } } });
+        new Chart(document.getElementById(canvasId), { type: 'line', data: { labels: data.map(d => d.date), datasets: [{ data: data.map(d => d.val), borderColor: '#00ff41', tension: 0.4 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
     }
 }
 
-// --- NEW CHART LOGIC & WEIGHT TRACKING ---
-
+// --- ANALYTICS ---
 function saveWeight() {
     const weight = document.getElementById('bodyWeightInput').value;
     if(!weight) return;
     let bodyWeights = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
     bodyWeights.push({ date: new Date().toISOString(), value: parseFloat(weight) });
     localStorage.setItem('bodyWeightLogs', JSON.stringify(bodyWeights));
-    document.getElementById('bodyWeightInput').value = '';
     renderWeightChart();
 }
 
@@ -451,110 +389,27 @@ function renderWeightChart() {
     const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
     const ctx = document.getElementById('weightChart').getContext('2d');
     if(weightChart) weightChart.destroy();
-    weightChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.map(d => new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})),
-            datasets: [{ data: data.map(d => d.value), borderColor: '#00ff41', backgroundColor: 'rgba(0, 255, 65, 0.1)', fill: true, tension: 0.3 }]
-        },
-        options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' } }, x: { grid: { display: false } } } }
-    });
+    weightChart = new Chart(ctx, { type: 'line', data: { labels: data.map(d => new Date(d.date).toLocaleDateString()), datasets: [{ data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
 }
 
 function renderSplitChart() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     const counts = { 'Push': 0, 'Pull': 0, 'Legs': 0 };
-    logs.filter(l => (new Date() - new Date(l.date)) / (1000*60*60*24) < 30).forEach(l => counts[l.routine]++);
-    
-    const ctx = document.getElementById('splitPieChart').getContext('2d');
+    logs.forEach(l => counts[l.routine]++);
     if(pieChart) pieChart.destroy();
-    pieChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Push', 'Pull', 'Legs'],
-            datasets: [{ data: Object.values(counts), backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'], borderWidth: 0 }]
-        },
-        options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
-    });
+    pieChart = new Chart(document.getElementById('splitPieChart'), { type: 'doughnut', data: { labels: ['Push', 'Pull', 'Legs'], datasets: [{ data: Object.values(counts), backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'] }] }, options: { maintainAspectRatio: false } });
 }
 
 function renderHeatmap() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    const weeklyTonnage = {}; // Group by week start
+    const weeklyTonnage = {};
     logs.forEach(l => {
-        const d = new Date(l.date);
-        const week = new Date(d.setDate(d.getDate() - d.getDay())).toLocaleDateString();
-        const tonnage = l.sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
-        weeklyTonnage[week] = (weeklyTonnage[week] || 0) + tonnage;
+        const week = new Date(new Date(l.date).setDate(new Date(l.date).getDate() - new Date(l.date).getDay())).toLocaleDateString();
+        weeklyTonnage[week] = (weeklyTonnage[week] || 0) + l.sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
     });
-
-    const ctx = document.getElementById('intensityHeatmap').getContext('2d');
     if(heatmapChart) heatmapChart.destroy();
-    heatmapChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(weeklyTonnage).slice(-6),
-            datasets: [{ data: Object.values(weeklyTonnage).slice(-6), backgroundColor: '#00ff41', borderRadius: 5 }]
-        },
-        options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-    });
+    heatmapChart = new Chart(document.getElementById('intensityHeatmap'), { type: 'bar', data: { labels: Object.keys(weeklyTonnage).slice(-6), datasets: [{ data: Object.values(weeklyTonnage).slice(-6), backgroundColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
 }
-
-// --- SETTINGS & CUSTOMIZATION ---
-
-function updateTheme(accent, pill) {
-    document.documentElement.style.setProperty('--accent', accent);
-    document.documentElement.style.setProperty('--selected-pill', pill);
-    localStorage.setItem('theme_accent', accent);
-    localStorage.setItem('theme_pill', pill);
-}
-
-function toggleUnits() {
-    const unit = document.getElementById('unitToggle').value;
-    localStorage.setItem('preferred_unit', unit);
-    document.querySelectorAll('input[placeholder="kg"], input[placeholder="lbs"]').forEach(input => input.placeholder = unit);
-}
-
-function exportData() {
-    const data = { logs: localStorage.getItem('workoutLogs'), weight: localStorage.getItem('bodyWeightLogs') };
-    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'elite-pro-backup.json'; a.click();
-}
-
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (data.logs) localStorage.setItem('workoutLogs', data.logs);
-            if (data.weight) localStorage.setItem('bodyWeightLogs', data.weight);
-            alert("Import successful!"); location.reload();
-        } catch (err) { alert("Invalid file format."); }
-    };
-    reader.readAsText(file);
-}
-
-function updateStorageInfo() {
-    let total = 0;
-    for (let x in localStorage) { if (localStorage.hasOwnProperty(x)) total += (localStorage[x].length + x.length) * 2; }
-    document.getElementById('storageInfo').innerText = (total / 1024).toFixed(2);
-}
-
-function confirmErase() { if (confirm("Delete all data permanently?")) { localStorage.clear(); location.reload(); } }
-
-// --- TIMER & CALCULATOR ---
-
-function toggleTimer() {
-    if(timerRunning) { clearInterval(timerInterval); document.getElementById('timerToggle').innerText = "START"; }
-    else { if(timeLeft <= 0) timeLeft = 90; timerInterval = setInterval(() => { if(timeLeft > 0) { timeLeft--; updateDisplay(); } else { clearInterval(timerInterval); resetTimer(); } }, 1000); document.getElementById('timerToggle').innerText = "STOP"; }
-    timerRunning = !timerRunning;
-}
-function updateDisplay() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timerDisplay').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
-function adjustTimer(v) { timeLeft = Math.max(0, timeLeft + v); updateDisplay(); }
-function resetTimer() { clearInterval(timerInterval); timeLeft=0; timerRunning=false; updateDisplay(); document.getElementById('timerToggle').innerText = "START"; }
 
 function calculateORM() {
     const w = parseFloat(document.getElementById('calcWeight').value) || 0;
@@ -562,15 +417,13 @@ function calculateORM() {
     document.getElementById('ormResult').innerText = w > 0 && r > 0 ? Math.round(w * (1 + r / 30)) : 0;
 }
 
-// --- INIT ---
-window.onload = () => {
-    const savedAccent = localStorage.getItem('theme_accent');
-    const savedPill = localStorage.getItem('theme_pill');
-    if (savedAccent) updateTheme(savedAccent, savedPill);
-    const savedUnit = localStorage.getItem('preferred_unit');
-    if (savedUnit) document.getElementById('unitToggle').value = savedUnit;
-    updateDropdown(); addSetRow(); renderWeekBar();
-};
+function confirmErase() { if (confirm("Delete all data?")) { localStorage.clear(); location.reload(); } }
+function exportData() {
+    const blob = new Blob([JSON.stringify(localStorage)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
+}
+
+window.onload = () => { updateDropdown(); addSetRow(); renderWeekBar(); };
 </script>
 </body>
 </html>
