@@ -81,9 +81,9 @@
         .history-day-header { 
             background: var(--card); padding: 15px; cursor: pointer; 
             display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; border-bottom: 1px solid var(--border);
+            font-weight: bold; flex: 1;
         }
-        .history-content { display: none; padding: 10px; background: var(--bg); }
+        .history-content { display: none; padding: 10px; background: var(--bg); border-top: 1px solid var(--border); }
 
         .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; overflow: hidden;}
         .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); width: calc(33.33% - 4px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
@@ -97,10 +97,16 @@
         
         .history-search-container { margin-bottom: 15px; }
         .history-search-container select { width: 100%; padding: 12px; border-radius: 10px; background: var(--input-bg); color: white; border: 1px solid var(--border); font-size: 14px; outline: none; }
-        
-        .progress-container { width: 100%; height: 6px; background: var(--border); border-radius: 3px; margin: 10px 0; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 1s ease-in-out; }
-        .orm-badge { background: var(--selected-pill); color: var(--accent); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 800; border: 1px solid rgba(0, 255, 65, 0.2); }
+
+        /* SWIPE DELETE STYLES */
+        .swipe-container { position: relative; overflow: hidden; margin-bottom: 12px; border-radius: 15px; }
+        .swipe-content { position: relative; z-index: 2; transition: transform 0.3s ease; background: var(--card); display: flex; width: 100%; }
+        .delete-swipe-btn { 
+            position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
+            background: var(--danger); color: white; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; font-size: 12px; z-index: 1;
+            border-radius: 0 15px 15px 0;
+        }
     </style>
 </head>
 <body>
@@ -182,23 +188,12 @@
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
     <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">Weekly Intensity (Tonnage)</span>
+        <span class="label-text">Weekly Volume Progression</span>
         <div style="height: 140px;"><canvas id="intensityHeatmap"></canvas></div>
     </div>
     <div class="workout-card" style="padding: 20px;">
         <span class="label-text">Split Distribution (Last 30 Days)</span>
         <div style="height: 180px;"><canvas id="splitPieChart"></canvas></div>
-    </div>
-    <div class="workout-card" style="padding: 20px; border: 1px solid var(--accent);">
-        <span class="label-text" style="color: var(--accent);">1RM Estimate Calculator</span>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
-            <input type="number" id="calcWeight" placeholder="Weight" oninput="calculateORM()" style="width:100%; padding:12px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-            <input type="number" id="calcReps" placeholder="Reps" oninput="calculateORM()" style="width:100%; padding:12px; background:var(--input-bg); border:1px solid var(--border); color:white;">
-        </div>
-        <div style="text-align: center;">
-            <span class="label-text">Estimated 1RM</span>
-            <div id="ormResult" style="font-size: 38px; font-weight: 900; color: var(--accent);">0</div>
-        </div>
     </div>
     <div id="statsList"></div>
 </div>
@@ -258,16 +253,10 @@ function showScreen(id) {
     if(id === 'history') renderHistory();
 }
 
-// --- CALENDAR & NAV LOGIC ---
 function jumpToMonth(val) {
     if(!val) return;
     const [year, month] = val.split('-');
-    const today = new Date();
-    if(parseInt(year) === today.getFullYear() && (parseInt(month)-1) === today.getMonth()) {
-        selectedDate = today;
-    } else {
-        selectedDate = new Date(year, month - 1, 1);
-    }
+    selectedDate = new Date(year, month - 1, 1);
     renderWeekBar();
 }
 
@@ -276,7 +265,7 @@ function renderWeekBar() {
     bar.innerHTML = '';
     document.getElementById('currentDateDisplay').innerText = selectedDate.toLocaleDateString(undefined, { month: 'short', year: 'numeric', day: 'numeric' });
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    const workoutDates = logs.map(l => new Date(l.date).toDateString());
+    const workoutDates = logs.map(l => l.date ? new Date(l.date).toDateString() : "");
     const start = new Date(selectedDate); 
     start.setDate(selectedDate.getDate() - 15);
 
@@ -296,7 +285,6 @@ function renderWeekBar() {
     }
 }
 
-// --- WORKOUT LOGIC ---
 function setRoutine(n, s, p) { currentRoutine = n; document.getElementById(s).className = 'toggle-slider ' + p; updateDropdown(); }
 function updateDropdown() { document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); }
 function addSetRow() {
@@ -322,7 +310,6 @@ function saveWorkout() {
     renderWeekBar();
 }
 
-// --- TIMER ---
 function toggleTimer() {
     if(timerRunning) { clearInterval(timerInterval); document.getElementById('timerToggle').innerText = "START"; }
     else { if(timeLeft <= 0) timeLeft = 90; timerInterval = setInterval(() => { if(timeLeft > 0) { timeLeft--; updateDisplay(); } else { resetTimer(); } }, 1000); document.getElementById('timerToggle').innerText = "STOP"; }
@@ -332,23 +319,114 @@ function updateDisplay() { const m=Math.floor(timeLeft/60), s=timeLeft%60; docum
 function adjustTimer(v) { timeLeft = Math.max(0, timeLeft + v); updateDisplay(); }
 function resetTimer() { clearInterval(timerInterval); timeLeft=0; timerRunning=false; updateDisplay(); document.getElementById('timerToggle').innerText = "START"; }
 
-// --- HISTORY & STATS ---
+// --- UPDATED HISTORY WITH SWIPE TO DELETE ON DATES ---
 function renderHistory() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     const container = document.getElementById('historyLogs');
     const filterMonth = document.getElementById('monthFilter').value;
     container.innerHTML = '';
-    const filteredLogs = filterMonth === 'all' ? logs : logs.filter(log => new Date(log.date).getMonth() == filterMonth);
+    const filteredLogs = filterMonth === 'all' ? logs : logs.filter(log => log.date && new Date(log.date).getMonth() == filterMonth);
+    
+    // Group logs by actual date string for deletion purposes
     const grouped = filteredLogs.reduce((acc, log) => {
-        const d = new Date(log.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
-        if (!acc[d]) acc[d] = []; acc[d].push(log); return acc;
+        const dObj = log.date ? new Date(log.date) : null;
+        const displayDate = (dObj && !isNaN(dObj)) ? dObj.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }) : "Unknown Date";
+        const storageDate = (dObj && !isNaN(dObj)) ? dObj.toDateString() : "Unknown";
+        if (!acc[displayDate]) acc[displayDate] = { storageDate, items: [] }; 
+        acc[displayDate].items.push(log); 
+        return acc;
     }, {});
-    Object.keys(grouped).reverse().forEach(dateKey => {
+
+    Object.keys(grouped).reverse().forEach(displayKey => {
+        const dayId = displayKey.replace(/\s+/g, '-');
         const dayGroup = document.createElement('div');
         dayGroup.className = 'history-day-group';
-        dayGroup.innerHTML = `<div class="history-day-header" onclick="this.nextElementSibling.style.display = (this.nextElementSibling.style.display==='block'?'none':'block')"><span>${dateKey}</span><span>${grouped[dateKey].length} Exercises ▼</span></div><div class="history-content">${grouped[dateKey].map(log => `<div class="workout-card" style="padding: 15px;"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}</div>`).join('')}</div></div>`).join('')}</div>`;
+        
+        // Wrap the HEADER in a swipe container to allow deleting the whole day
+        dayGroup.innerHTML = `
+            <div class="swipe-container" id="container-day-${dayId}">
+                <div class="delete-swipe-btn" onclick="deleteDay('${grouped[displayKey].storageDate}')">DELETE DAY</div>
+                <div class="swipe-content" style="background: var(--card);"
+                     ontouchstart="handleTouchStart(event, 'day-${dayId}')" 
+                     ontouchmove="handleTouchMove(event, 'day-${dayId}')" 
+                     ontouchend="handleTouchEnd(event, 'day-${dayId}')">
+                    <div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')">
+                        <span>${displayKey}</span>
+                        <span>${grouped[displayKey].items.length} Exercises ▼</span>
+                    </div>
+                </div>
+            </div>
+            <div class="history-content">
+                ${grouped[displayKey].items.map(log => `
+                    <div class="swipe-container" id="container-${log.id}">
+                        <div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div>
+                        <div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0;" 
+                             ontouchstart="handleTouchStart(event, ${log.id})" 
+                             ontouchmove="handleTouchMove(event, ${log.id})" 
+                             ontouchend="handleTouchEnd(event, ${log.id})">
+                            <span class="label-text">${log.exercise}</span>
+                            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                                ${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`;
         container.appendChild(dayGroup);
     });
+}
+
+// SWIPE LOGIC
+let touchStartX = 0;
+let touchCurrentX = 0;
+
+function handleTouchStart(e, id) {
+    touchStartX = e.touches[0].clientX;
+    const content = document.querySelector(`#container-${id} .swipe-content`);
+    if(content) content.style.transition = 'none';
+}
+
+function handleTouchMove(e, id) {
+    touchCurrentX = e.touches[0].clientX;
+    const diff = touchStartX - touchCurrentX;
+    const content = document.querySelector(`#container-${id} .swipe-content`);
+    if (content && diff > 0 && diff < 100) {
+        content.style.transform = `translateX(-${diff}px)`;
+    }
+}
+
+function handleTouchEnd(e, id) {
+    const content = document.querySelector(`#container-${id} .swipe-content`);
+    if(!content) return;
+    content.style.transition = 'transform 0.3s ease';
+    const diff = touchStartX - touchCurrentX;
+    if (diff > 50) {
+        content.style.transform = 'translateX(-80px)';
+    } else {
+        content.style.transform = 'translateX(0)';
+    }
+}
+
+function deleteWorkout(id) {
+    if(!confirm("Delete this exercise entry?")) return;
+    let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    history = history.filter(log => log.id !== id);
+    localStorage.setItem('workoutLogs', JSON.stringify(history));
+    renderHistory();
+    renderWeekBar();
+}
+
+function deleteDay(storageDate) {
+    if(!confirm(`Delete ALL workouts for ${storageDate}?`)) return;
+    let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    // Filter out any log that falls on this specific day string
+    history = history.filter(log => {
+        const d = log.date ? new Date(log.date).toDateString() : "Unknown";
+        return d !== storageDate;
+    });
+    localStorage.setItem('workoutLogs', JSON.stringify(history));
+    renderHistory();
+    renderWeekBar();
 }
 
 function renderPerformanceStats() {
@@ -358,24 +436,21 @@ function renderPerformanceStats() {
     const exerciseHistory = {};
     logs.forEach(log => {
         if (!exerciseHistory[log.exercise]) exerciseHistory[log.exercise] = [];
-        let dailyMax1RM = 0;
-        log.sets.forEach(set => {
-            const orm = parseFloat(set.weight) * (1 + parseFloat(set.reps) / 30);
-            if (orm > dailyMax1RM) dailyMax1RM = orm;
-        });
-        exerciseHistory[log.exercise].push({ date: new Date(log.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), val: Math.round(dailyMax1RM) });
+        let totalVol = 0; log.sets.forEach(s => totalVol += (parseFloat(s.weight) * parseFloat(s.reps)));
+        const dateObj = log.date ? new Date(log.date) : null;
+        const label = (dateObj && !isNaN(dateObj)) ? dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "N/A";
+        exerciseHistory[log.exercise].push({ date: label, val: totalVol });
     });
     for (const [ex, data] of Object.entries(exerciseHistory)) {
         const canvasId = `chart-${ex.replace(/\s+/g, '-')}`;
         const card = document.createElement('div');
         card.className = 'workout-card'; card.style.padding = '18px';
-        card.innerHTML = `<span class="label-text">${ex}</span><div style="height:160px;"><canvas id="${canvasId}"></canvas></div>`;
+        card.innerHTML = `<span class="label-text">${ex} (Volume)</span><div style="height:160px;"><canvas id="${canvasId}"></canvas></div>`;
         statsContainer.appendChild(card);
-        new Chart(document.getElementById(canvasId), { type: 'line', data: { labels: data.map(d => d.date), datasets: [{ data: data.map(d => d.val), borderColor: '#00ff41', tension: 0.4 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+        new Chart(document.getElementById(canvasId), { type: 'line', data: { labels: data.map(d => d.date), datasets: [{ label: 'Volume', data: data.map(d => d.val), borderColor: '#00ff41', tension: 0.4 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
     }
 }
 
-// --- ANALYTICS ---
 function saveWeight() {
     const weight = document.getElementById('bodyWeightInput').value;
     if(!weight) return;
@@ -389,7 +464,8 @@ function renderWeightChart() {
     const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
     const ctx = document.getElementById('weightChart').getContext('2d');
     if(weightChart) weightChart.destroy();
-    weightChart = new Chart(ctx, { type: 'line', data: { labels: data.map(d => new Date(d.date).toLocaleDateString()), datasets: [{ data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
+    const labels = data.map(d => { const dObj = d.date ? new Date(d.date) : null; return (dObj && !isNaN(dObj)) ? dObj.toLocaleDateString() : "New"; });
+    weightChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Weight', data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 }
 
 function renderSplitChart() {
@@ -402,19 +478,14 @@ function renderSplitChart() {
 
 function renderHeatmap() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    const weeklyTonnage = {};
+    const weeklyVol = {};
     logs.forEach(l => {
-        const week = new Date(new Date(l.date).setDate(new Date(l.date).getDate() - new Date(l.date).getDay())).toLocaleDateString();
-        weeklyTonnage[week] = (weeklyTonnage[week] || 0) + l.sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
+        const d = l.date ? new Date(l.date) : new Date();
+        const week = new Date(d.setDate(d.getDate() - d.getDay())).toLocaleDateString();
+        weeklyVol[week] = (weeklyVol[week] || 0) + l.sets.reduce((sum, s) => sum + (parseFloat(s.weight) * parseFloat(s.reps)), 0);
     });
     if(heatmapChart) heatmapChart.destroy();
-    heatmapChart = new Chart(document.getElementById('intensityHeatmap'), { type: 'bar', data: { labels: Object.keys(weeklyTonnage).slice(-6), datasets: [{ data: Object.values(weeklyTonnage).slice(-6), backgroundColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
-}
-
-function calculateORM() {
-    const w = parseFloat(document.getElementById('calcWeight').value) || 0;
-    const r = parseFloat(document.getElementById('calcReps').value) || 0;
-    document.getElementById('ormResult').innerText = w > 0 && r > 0 ? Math.round(w * (1 + r / 30)) : 0;
+    heatmapChart = new Chart(document.getElementById('intensityHeatmap'), { type: 'bar', data: { labels: Object.keys(weeklyVol).slice(-6), datasets: [{ label: 'Weekly Volume', data: Object.values(weeklyVol).slice(-6), backgroundColor: '#00ff41' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 }
 
 function confirmErase() { if (confirm("Delete all data?")) { localStorage.clear(); location.reload(); } }
