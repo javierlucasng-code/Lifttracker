@@ -116,6 +116,35 @@
         .ex-note-input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 10px; padding: 10px; font-size: 13px; margin-bottom: 15px; outline: none; resize: none; }
         .history-note { font-size: 11px; color: var(--accent); font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
         .prev-note-display { background: var(--selected-pill); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; border: 1px solid rgba(0, 255, 65, 0.3); display: none; }
+        
+        /* Mobile visibility fix for RPE and Log Table */
+        #logTable input { 
+            width: 100%; 
+            touch-action: manipulation; 
+            font-size: 14px; 
+        }
+
+        /* RPE Slider Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 0 5px var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -200,7 +229,6 @@
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
 
-    <!-- NEW: Performance Summary Grid -->
     <div id="statsSummary" class="stats-summary-grid">
         <div class="summary-item">
             <span class="stat-label">Total Vol (All Time)</span>
@@ -271,6 +299,26 @@
 <!-- SETTINGS SCREEN -->
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
+
+    <!-- RPE Explanation Dropdown -->
+    <div class="workout-card" style="padding: 0; overflow: hidden; border-color: var(--accent); margin-bottom: 20px;">
+        <details style="width: 100%;">
+            <summary style="padding: 15px; cursor: pointer; font-weight: 800; font-size: 14px; color: var(--accent); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+                WHAT IS RPE? <span style="font-size: 10px;">▼</span>
+            </summary>
+            <div style="padding: 0 15px 15px 15px; font-size: 13px; line-height: 1.5; color: var(--text-sub);">
+                <p><strong>RPE (Rate of Perceived Exertion)</strong> measures how hard a set felt on a scale of 1-10.</p>
+                <ul style="padding-left: 15px; margin: 10px 0;">
+                    <li><b style="color:var(--accent)">10:</b> Maximal effort. 0 reps left.</li>
+                    <li><b style="color:var(--accent)">9:</b> 1 rep left in the tank.</li>
+                    <li><b style="color:var(--accent)">8:</b> 2 reps left in the tank.</li>
+                    <li><b style="color:var(--accent)">7:</b> 3 reps left (Technical speed).</li>
+                </ul>
+                <p style="font-style: italic; font-size: 11px;">Use this to track intensity and avoid overtraining.</p>
+            </div>
+        </details>
+    </div>
+
     <div class="workout-card" style="padding: 20px;">
         <input type="file" id="importFileInput" style="display: none;" accept=".json" onchange="handleImport(this)">
         <button class="btn-secondary" onclick="document.getElementById('importFileInput').click()">IMPORT BACKUP (.JSON)</button>
@@ -384,22 +432,67 @@ function promptNewExercise() {
 
 function addSetRow() {
     const div = document.createElement('div');
-    div.style = "display:grid; grid-template-columns: 1fr 1fr 40px; gap:10px; margin-bottom:10px;";
-    div.innerHTML = `<input type="number" placeholder="kg" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;"> <input type="number" placeholder="reps" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white;"> <button class="remove-set-btn" onclick="this.parentElement.remove()">✕</button>`;
+    // Updated Grid: 2 columns. Left side for Inputs/Slider stack, Right side for 'X' button[cite: 4]
+    div.style = "display:grid; grid-template-columns: 1fr 40px; gap:8px; margin-bottom:15px; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid var(--border);";
+    
+    div.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Top Row: KG and REPS -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <input type="number" placeholder="kg" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white; width: 100%;"> 
+                <input type="number" placeholder="reps" style="padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--input-bg); color:white; width: 100%;">
+            </div>
+            
+            <!-- Bottom Row: RPE Slider -->
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--input-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border);">
+                <span style="font-size: 10px; color: var(--accent); font-weight: bold; font-family: monospace; white-space: nowrap;">RPE <span class="rpe-val">7.5</span></span>
+                <input type="range" min="5" max="10" step="0.5" value="7.5" 
+                    style="flex: 1; accent-color: var(--accent); margin: 0; cursor: pointer;" 
+                    oninput="updateRpeDisplay(this)">
+            </div>
+        </div>
+
+        <button class="remove-set-btn" onclick="this.parentElement.remove()">✕</button>`;
+    
     document.getElementById('logTable').appendChild(div);
 }
 
+function updateRpeDisplay(slider) {
+    slider.previousElementSibling.querySelector('.rpe-val').innerText = slider.value;
+}
+
 function saveWorkout() {
-    const sets = Array.from(document.getElementById('logTable').children).map(row => ({
-        weight: row.children[0].value,
-        reps: row.children[1].value
-    })).filter(s => s.weight && s.reps);
+    const rows = Array.from(document.getElementById('logTable').children);
+    const sets = rows.map(row => {
+        // Corrected mapping based on new stacked div structure[cite: 4]
+        const inputsContainer = row.children[0];
+        const kgRepsRow = inputsContainer.children[0];
+        const weight = kgRepsRow.children[0].value;
+        const reps = kgRepsRow.children[1].value;
+        
+        const rpeRow = inputsContainer.children[1];
+        const rpeInput = rpeRow.querySelector('input[type="range"]');
+        const rpe = rpeInput ? rpeInput.value : null;
+        
+        return { weight, reps, rpe };
+    }).filter(s => s.weight && s.reps);
+
     if (sets.length === 0) return alert("Please enter weight and reps!");
+    
     const note = document.getElementById('exNote').value.trim();
-    const log = { id: Date.now(), date: selectedDate.toISOString(), exercise: document.getElementById('exSelect').value, routine: currentRoutine, sets: sets, note: note };
+    const log = { 
+        id: Date.now(), 
+        date: selectedDate.toISOString(), 
+        exercise: document.getElementById('exSelect').value, 
+        routine: currentRoutine, 
+        sets: sets, 
+        note: note 
+    };
+
     let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     history.push(log);
     localStorage.setItem('workoutLogs', JSON.stringify(history));
+    
     alert("Session Logged!");
     document.getElementById('logTable').innerHTML = '';
     document.getElementById('exNote').value = ''; 
@@ -436,7 +529,7 @@ function renderHistory() {
         const dayGroupId = displayKey.replace(/[^a-z0-9]/gi, '-'); 
         const dayGroup = document.createElement('div');
         dayGroup.className = 'history-day-group';
-        dayGroup.innerHTML = `<div class="swipe-container" id="container-day-${dayGroupId}"><div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div><div class="swipe-content" style="background: var(--card);" ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')"><div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')"><span>${displayKey}</span><span>${dayData.items.length} Exercises ▼</span></div></div></div><div class="history-content">${dayData.items.map(log => `<div class="swipe-container" id="container-${log.id}"><div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div><div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0; display:block;" ontouchstart="handleTouchStart(event, '${log.id}')" ontouchmove="handleTouchMove(event, '${log.id}')" ontouchend="handleTouchEnd(event, '${log.id}')"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}</div>`).join('')}</div>${log.note ? `<div class="history-note">Note: ${log.note}</div>` : ''}</div></div>`).join('')}</div>`;
+        dayGroup.innerHTML = `<div class="swipe-container" id="container-day-${dayGroupId}"><div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div><div class="swipe-content" style="background: var(--card);" ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')"><div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')"><span>${displayKey}</span><span>${dayData.items.length} Exercises ▼</span></div></div></div><div class="history-content">${dayData.items.map(log => `<div class="swipe-container" id="container-${log.id}"><div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div><div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0; display:block;" ontouchstart="handleTouchStart(event, '${log.id}')" ontouchmove="handleTouchMove(event, '${log.id}')" ontouchend="handleTouchEnd(event, '${log.id}')"><span class="label-text">${log.exercise}</span><div style="display:flex; flex-wrap:wrap; gap:10px;">${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}${s.rpe ? ` <span style="color:var(--accent)">@${s.rpe}</span>` : ''}</div>`).join('')}</div>${log.note ? `<div class="history-note">Note: ${log.note}</div>` : ''}</div></div>`).join('')}</div>`;
         container.appendChild(dayGroup);
     });
 }
@@ -472,7 +565,6 @@ function renderPerformanceStats() {
     }
 }
 
-/* NEW: Dashboard Logic */
 function calculateSummaryStats() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     let totalAll = 0, bestSession = 0;
@@ -551,12 +643,11 @@ function handleImport(input) {
     reader.onload = function(e) {
         try {
             const importedData = JSON.parse(e.target.result);
-            if (confirm("This will merge imported data with your current logs and settings. Proceed?")) {
+            if (confirm("Merge imported data with current logs?")) {
                 Object.keys(importedData).forEach(key => localStorage.setItem(key, importedData[key]));
-                alert("Import Successful! The app will now reload.");
                 location.reload();
             }
-        } catch (err) { alert("Error: The selected file is not a valid backup."); }
+        } catch (err) { alert("Error: Invalid backup file."); }
     };
     reader.readAsText(file);
 }
