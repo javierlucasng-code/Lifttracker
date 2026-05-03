@@ -121,6 +121,25 @@
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--border); border-radius: 2px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -7px; box-shadow: 0 0 5px var(--accent); }
+
+        /* ADDED: Calendar Overlay Styles */
+        .calendar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 4000;
+            display: none; flex-direction: column; padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .full-calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+            background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 10px;
+        }
+        .cal-day-box {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px; border-radius: 8px; border: 1px solid transparent;
+        }
+        .cal-day-box.has-workout { color: var(--accent); text-decoration: underline; }
+        .cal-day-box.selected { background: var(--accent); color: #000; }
+        .cal-weekday { font-size: 10px; color: var(--text-sub); text-align: center; padding-bottom: 5px; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -129,14 +148,28 @@
     <div class="app-logo">ELITE<span style="color:var(--accent)">PRO</span></div>
 </nav>
 
+<!-- ADDED: Full Calendar Overlay -->
+<div id="calendarOverlay" class="calendar-overlay">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 id="overlayMonthLabel" style="color: var(--accent); margin:0;">SELECT DATE</h3>
+        <button onclick="closeCalendarOverlay()" style="background:none; border:1px solid var(--border); color:white; padding:8px 15px; border-radius:10px;">CLOSE</button>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 5px;">
+        <div class="cal-weekday">S</div><div class="cal-weekday">M</div><div class="cal-weekday">T</div>
+        <div class="cal-weekday">W</div><div class="cal-weekday">T</div><div class="cal-weekday">F</div><div class="cal-weekday">S</div>
+    </div>
+    <div id="fullCalendarGrid" class="full-calendar-grid"></div>
+    <p style="font-size: 11px; color: var(--text-sub); margin-top: 15px; text-align: center;">Dates with <span style="color:var(--accent)">underlines</span> have logged sessions.</p>
+</div>
+
 <!-- WORKOUT SCREEN -->
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
-        <span class="label-text">Tap Date to Select Month</span>
-        <div class="month-label">
+        <span class="label-text">Tap Date for Full Calendar</span>
+        <div class="month-label" onclick="openCalendarOverlay()">
             <span id="currentDateDisplay">Today</span> 
             <span style="font-size: 12px; color: var(--text-sub);">▼</span>
-            <input type="month" class="month-selector-input" id="monthPicker" onchange="jumpToMonth(this.value)">
+            <input type="month" class="month-selector-input" id="monthPicker" onchange="jumpToMonth(this.value); event.stopPropagation();">
         </div>
     </div>
     <div class="scroll-calendar" id="weekBar"></div>
@@ -243,8 +276,6 @@
 <!-- SETTINGS SCREEN -->
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
-
-     <!-- RPE Explanation Dropdown -->
     <div class="workout-card" style="padding: 0; overflow: hidden; border-color: var(--accent); margin-bottom: 20px;">
         <details style="width: 100%;">
             <summary style="padding: 15px; cursor: pointer; font-weight: 800; font-size: 14px; color: var(--accent); list-style: none; display: flex; justify-content: space-between; align-items: center;">
@@ -262,7 +293,6 @@
             </div>
         </details>
     </div>
-    
     <div class="workout-card" style="padding: 20px;">
         <input type="file" id="importFileInput" style="display: none;" accept=".json" onchange="handleImport(this)">
         <button class="btn-secondary" onclick="document.getElementById('importFileInput').click()">IMPORT (.JSON)</button>
@@ -311,6 +341,37 @@ function jumpToMonth(val) {
     renderWeekBar();
 }
 
+/* ADDED: Full Calendar Overlay Logic */
+function openCalendarOverlay() {
+    const overlay = document.getElementById('calendarOverlay');
+    const grid = document.getElementById('fullCalendarGrid');
+    const label = document.getElementById('overlayMonthLabel');
+    overlay.style.display = 'flex';
+    grid.innerHTML = '';
+    
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    label.innerText = selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    const workoutDates = logs.map(l => new Date(l.date).toDateString());
+
+    for (let i = 0; i < firstDay; i++) { grid.innerHTML += '<div></div>'; }
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(year, month, i);
+        const isSelected = d.toDateString() === selectedDate.toDateString();
+        const hasWorkout = workoutDates.includes(d.toDateString());
+        const box = document.createElement('div');
+        box.className = `cal-day-box ${isSelected ? 'selected' : ''} ${hasWorkout ? 'has-workout' : ''}`;
+        box.innerText = i;
+        box.onclick = () => { selectedDate = d; renderWeekBar(); closeCalendarOverlay(); };
+        grid.appendChild(box);
+    }
+}
+function closeCalendarOverlay() { document.getElementById('calendarOverlay').style.display = 'none'; }
+
 function renderWeekBar() {
     const bar = document.getElementById('weekBar');
     bar.innerHTML = '';
@@ -337,17 +398,8 @@ function renderWeekBar() {
 }
 
 function setRoutine(n, s, p) { currentRoutine = n; document.getElementById(s).className = 'toggle-slider ' + p; updateDropdown(); }
-
-function setStatsFilter(filter, posClass) {
-    statsFilter = filter;
-    document.getElementById('statsSlider').className = 'toggle-slider ' + posClass;
-    renderPerformanceStats();
-}
-
-function updateDropdown() { 
-    document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); 
-    updatePreviousNote();
-}
+function setStatsFilter(filter, posClass) { statsFilter = filter; document.getElementById('statsSlider').className = 'toggle-slider ' + posClass; renderPerformanceStats(); }
+function updateDropdown() { document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); updatePreviousNote(); }
 
 function updatePreviousNote() {
     const selectedEx = document.getElementById('exSelect').value;
@@ -381,9 +433,7 @@ function addSetRow() {
     document.getElementById('logTable').appendChild(div);
 }
 
-function updateRpeDisplay(slider) {
-    slider.previousElementSibling.querySelector('.rpe-val').innerText = slider.value;
-}
+function updateRpeDisplay(slider) { slider.previousElementSibling.querySelector('.rpe-val').innerText = slider.value; }
 
 function saveWorkout() {
     const rows = Array.from(document.getElementById('logTable').children);
