@@ -104,8 +104,8 @@
         .delete-swipe-btn { 
             position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
             background: var(--danger); color: white; display: flex; align-items: center;
-            justify-content: center; font-weight: bold; font-size: 12px; z-index: 1;
-            border-radius: 0 15px 15px 0;
+            justify-content: center; font-weight: bold; font-size: 10px; z-index: 1;
+            border-radius: 0 15px 15px 0; text-align: center; line-height: 1.2;
         }
     </style>
 </head>
@@ -188,7 +188,7 @@
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
     <div class="workout-card" style="padding: 20px;">
-        <span class="label-text">Weekly Volume Progression</span>
+        <span class="label-text">Weekly Volume Progression[cite: 1]</span>
         <div style="height: 140px;"><canvas id="intensityHeatmap"></canvas></div>
     </div>
     <div class="workout-card" style="padding: 20px;">
@@ -319,7 +319,6 @@ function updateDisplay() { const m=Math.floor(timeLeft/60), s=timeLeft%60; docum
 function adjustTimer(v) { timeLeft = Math.max(0, timeLeft + v); updateDisplay(); }
 function resetTimer() { clearInterval(timerInterval); timeLeft=0; timerRunning=false; updateDisplay(); document.getElementById('timerToggle').innerText = "START"; }
 
-// --- UPDATED HISTORY WITH SWIPE TO DELETE ON DATES ---
 function renderHistory() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     const container = document.getElementById('historyLogs');
@@ -327,43 +326,42 @@ function renderHistory() {
     container.innerHTML = '';
     const filteredLogs = filterMonth === 'all' ? logs : logs.filter(log => log.date && new Date(log.date).getMonth() == filterMonth);
     
-    // Group logs by actual date string for deletion purposes
     const grouped = filteredLogs.reduce((acc, log) => {
         const dObj = log.date ? new Date(log.date) : null;
         const displayDate = (dObj && !isNaN(dObj)) ? dObj.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }) : "Unknown Date";
-        const storageDate = (dObj && !isNaN(dObj)) ? dObj.toDateString() : "Unknown";
-        if (!acc[displayDate]) acc[displayDate] = { storageDate, items: [] }; 
+        const storageDateString = (dObj && !isNaN(dObj)) ? dObj.toDateString() : "Unknown";
+        if (!acc[displayDate]) acc[displayDate] = { storageDateString, items: [] }; 
         acc[displayDate].items.push(log); 
         return acc;
     }, {});
 
     Object.keys(grouped).reverse().forEach(displayKey => {
-        const dayId = displayKey.replace(/\s+/g, '-');
+        const dayData = grouped[displayKey];
+        const dayGroupId = displayKey.replace(/[^a-z0-9]/gi, '-'); 
         const dayGroup = document.createElement('div');
         dayGroup.className = 'history-day-group';
         
-        // Wrap the HEADER in a swipe container to allow deleting the whole day
         dayGroup.innerHTML = `
-            <div class="swipe-container" id="container-day-${dayId}">
-                <div class="delete-swipe-btn" onclick="deleteDay('${grouped[displayKey].storageDate}')">DELETE DAY</div>
+            <div class="swipe-container" id="container-day-${dayGroupId}">
+                <div class="delete-swipe-btn" onclick="deleteDay('${dayData.storageDateString}')">DELETE<br>DAY</div>
                 <div class="swipe-content" style="background: var(--card);"
-                     ontouchstart="handleTouchStart(event, 'day-${dayId}')" 
-                     ontouchmove="handleTouchMove(event, 'day-${dayId}')" 
-                     ontouchend="handleTouchEnd(event, 'day-${dayId}')">
+                     ontouchstart="handleTouchStart(event, 'day-${dayGroupId}')" 
+                     ontouchmove="handleTouchMove(event, 'day-${dayGroupId}')" 
+                     ontouchend="handleTouchEnd(event, 'day-${dayGroupId}')">
                     <div class="history-day-header" onclick="const content = this.parentElement.parentElement.nextElementSibling; content.style.display = (content.style.display==='block'?'none':'block')">
                         <span>${displayKey}</span>
-                        <span>${grouped[displayKey].items.length} Exercises ▼</span>
+                        <span>${dayData.items.length} Exercises ▼</span>
                     </div>
                 </div>
             </div>
             <div class="history-content">
-                ${grouped[displayKey].items.map(log => `
+                ${dayData.items.map(log => `
                     <div class="swipe-container" id="container-${log.id}">
                         <div class="delete-swipe-btn" onclick="deleteWorkout(${log.id})">DELETE</div>
                         <div class="swipe-content workout-card" style="padding: 15px; margin-bottom:0;" 
-                             ontouchstart="handleTouchStart(event, ${log.id})" 
-                             ontouchmove="handleTouchMove(event, ${log.id})" 
-                             ontouchend="handleTouchEnd(event, ${log.id})">
+                             ontouchstart="handleTouchStart(event, '${log.id}')" 
+                             ontouchmove="handleTouchMove(event, '${log.id}')" 
+                             ontouchend="handleTouchEnd(event, '${log.id}')">
                             <span class="label-text">${log.exercise}</span>
                             <div style="display:flex; flex-wrap:wrap; gap:10px;">
                                 ${log.sets.map((s, i) => `<div style="background:var(--input-bg); padding:5px 10px; border-radius:5px; font-size:12px;">S${i+1}: ${s.weight}x${s.reps}</div>`).join('')}
@@ -376,7 +374,6 @@ function renderHistory() {
     });
 }
 
-// SWIPE LOGIC
 let touchStartX = 0;
 let touchCurrentX = 0;
 
@@ -416,13 +413,13 @@ function deleteWorkout(id) {
     renderWeekBar();
 }
 
-function deleteDay(storageDate) {
-    if(!confirm(`Delete ALL workouts for ${storageDate}?`)) return;
+function deleteDay(storageDateString) {
+    if(!confirm(`Delete ALL workouts for ${storageDateString}?`)) return;
     let history = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    // Filter out any log that falls on this specific day string
+    // Filter out all logs where the date's toDateString matches the header's date
     history = history.filter(log => {
         const d = log.date ? new Date(log.date).toDateString() : "Unknown";
-        return d !== storageDate;
+        return d !== storageDateString;
     });
     localStorage.setItem('workoutLogs', JSON.stringify(history));
     renderHistory();
