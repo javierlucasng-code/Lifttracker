@@ -197,6 +197,9 @@
         .rpe-table td { padding: 8px; border-bottom: 1px solid var(--border); }
         .rpe-table .rpe-num { font-weight: 900; color: var(--accent); width: 45px; }
         .rpe-table .rpe-desc { color: var(--text-sub); }
+
+        /* Auto-Save Indicator */
+        #autoSaveStatus { font-size: 9px; color: var(--text-sub); text-align: center; margin-bottom: 5px; opacity: 0; transition: opacity 0.3s; }
     </style>
 </head>
 <body>
@@ -255,6 +258,7 @@
     <div id="prevNoteDisplay" class="prev-note-display"></div>
     <textarea id="exNote" class="ex-note-input" placeholder="Add exercise notes..." rows="2"></textarea>
 
+    <div id="autoSaveStatus">Autosaved session draft</div>
     <div id="logTable"></div>
     <button class="btn-secondary" onclick="addSetRow()">+ Add Set</button>
     <button class="btn-primary" onclick="saveWorkout()">LOG SESSION</button>
@@ -538,18 +542,45 @@ function saveWorkout() {
     history.push(log);
     localStorage.setItem('workoutLogs', JSON.stringify(history));
     
+    if(!timerRunning) toggleTimer(); else { timeLeft = 90; updateDisplay(); }
+
     alert("Session Logged!");
     document.getElementById('logTable').innerHTML = ''; 
     document.getElementById('exNote').value = '';
+    localStorage.removeItem('elite_workout_draft'); // Clear safety draft
     addSetRow(); 
     renderWeekBar();
 }
 
+// Updated Vibration logic[cite: 1]
+function triggerVibration() {
+    if (window.navigator && window.navigator.vibrate) {
+        // High-intensity double pulse[cite: 1]
+        window.navigator.vibrate([500, 200, 500]);
+    }
+}
+
 function toggleTimer() {
-    if(timerRunning) { clearInterval(timerInterval); document.getElementById('timerToggle').innerText = "START"; }
-    else { if(timeLeft <= 0) timeLeft = 90; timerInterval = setInterval(() => { if(timeLeft > 0) { timeLeft--; updateDisplay(); } else { resetTimer(); } }, 1000); document.getElementById('timerToggle').innerText = "STOP"; }
+    if(timerRunning) { 
+        clearInterval(timerInterval); 
+        document.getElementById('timerToggle').innerText = "START"; 
+    }
+    else { 
+        if(timeLeft <= 0) timeLeft = 90; 
+        timerInterval = setInterval(() => { 
+            if(timeLeft > 0) { 
+                timeLeft--; 
+                updateDisplay(); 
+            } else { 
+                triggerVibration(); // Added vibration on zero[cite: 1]
+                resetTimer(); 
+            } 
+        }, 1000); 
+        document.getElementById('timerToggle').innerText = "STOP"; 
+    }
     timerRunning = !timerRunning;
 }
+
 function updateDisplay() { const m=Math.floor(timeLeft/60), s=timeLeft%60; document.getElementById('timerDisplay').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
 function adjustTimer(v) { timeLeft = Math.max(0, timeLeft + v); updateDisplay(); }
 function resetTimer() { clearInterval(timerInterval); timeLeft=0; timerRunning=false; updateDisplay(); document.getElementById('timerToggle').innerText = "START"; }
@@ -652,7 +683,6 @@ function renderPerformanceStats() {
     }
 }
 
-// NEW: Strength Peak Logic (Estimated 1RM using Brzycki Formula)
 function renderStrengthPeaks() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
     const container = document.getElementById('strengthList');
@@ -663,7 +693,6 @@ function renderStrengthPeaks() {
 
     filteredLogs.forEach(log => {
         log.sets.forEach(s => {
-            // Brzycki: Weight / (1.0278 - (0.0278 * Reps))
             const est1RM = s.weight / (1.0278 - (0.0278 * s.reps));
             if (!maxes[log.exercise] || est1RM > maxes[log.exercise]) {
                 maxes[log.exercise] = est1RM;
@@ -789,7 +818,46 @@ function exportData() {
 
 function confirmErase() { if (confirm("Delete all?")) { localStorage.clear(); location.reload(); } }
 
-window.onload = () => { updateDropdown(); addSetRow(); renderWeekBar(); updateHealthStats(); };
+function runAutoSave() {
+    const logTable = document.getElementById('logTable');
+    if (!logTable) return;
+    const rows = Array.from(logTable.children);
+    const draft = rows.map(row => {
+        const kg = row.querySelector('input[placeholder="kg"]')?.value;
+        const reps = row.querySelector('input[placeholder="reps"]')?.value;
+        return { kg, reps };
+    }).filter(d => d.kg || d.reps);
+    
+    if (draft.length > 0) {
+        localStorage.setItem('elite_workout_draft', JSON.stringify(draft));
+        const indicator = document.getElementById('autoSaveStatus');
+        indicator.style.opacity = '1';
+        setTimeout(() => indicator.style.opacity = '0', 2000);
+    }
+}
+
+function loadDraft() {
+    const draft = JSON.parse(localStorage.getItem('elite_workout_draft'));
+    if (draft && draft.length > 0) {
+        document.getElementById('logTable').innerHTML = '';
+        draft.forEach(d => {
+            addSetRow();
+            const lastRow = document.getElementById('logTable').lastElementChild;
+            lastRow.querySelector('input[placeholder="kg"]').value = d.kg;
+            lastRow.querySelector('input[placeholder="reps"]').value = d.reps;
+        });
+    } else {
+        addSetRow();
+    }
+}
+
+window.onload = () => { 
+    updateDropdown(); 
+    loadDraft(); 
+    renderWeekBar(); 
+    updateHealthStats(); 
+    setInterval(runAutoSave, 5000); 
+};
 </script>
 </body>
 </html>
