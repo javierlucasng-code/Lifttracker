@@ -312,6 +312,8 @@
         <span class="label-text">Split Distribution (Last 30 Days)</span>
         <div style="height: 180px;"><canvas id="splitPieChart"></canvas></div>
     </div>
+    <!-- NEW: Est 1RM Strength Tracker -->
+    <div id="strengthList"></div>
     <div id="statsList"></div>
 </div>
 
@@ -402,7 +404,7 @@ function showScreen(id) {
     
     if(id === 'workout') renderWeekBar();
     if(id === 'weight') { renderWeightChart(); updateHealthStats(); }
-    if(id === 'stats') { renderPerformanceStats(); renderSplitChart(); renderHeatmap(); calculateSummaryStats(); }
+    if(id === 'stats') { renderPerformanceStats(); renderSplitChart(); renderHeatmap(); calculateSummaryStats(); renderStrengthPeaks(); }
     if(id === 'history') renderHistory();
 }
 
@@ -472,7 +474,7 @@ function renderWeekBar() {
 }
 
 function setRoutine(n, s, p) { currentRoutine = n; document.getElementById(s).className = 'toggle-slider ' + p; updateDropdown(); }
-function setStatsFilter(filter, posClass) { statsFilter = filter; document.getElementById('statsSlider').className = 'toggle-slider ' + posClass; renderPerformanceStats(); }
+function setStatsFilter(filter, posClass) { statsFilter = filter; document.getElementById('statsSlider').className = 'toggle-slider ' + posClass; renderPerformanceStats(); renderStrengthPeaks(); }
 function updateDropdown() { document.getElementById('exSelect').innerHTML = splitExercises[currentRoutine].map(e => `<option>${e}</option>`).join(''); updatePreviousNote(); }
 
 function updatePreviousNote() {
@@ -648,6 +650,39 @@ function renderPerformanceStats() {
         statsContainer.appendChild(card);
         new Chart(document.getElementById(canvasId), { type: 'line', data: { labels: data.map(d => d.date), datasets: [{ label: 'Volume (kg)', data: data.map(d => d.val), borderColor: '#00ff41', tension: 0.4 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } } } });
     }
+}
+
+// NEW: Strength Peak Logic (Estimated 1RM using Brzycki Formula)
+function renderStrengthPeaks() {
+    const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    const container = document.getElementById('strengthList');
+    container.innerHTML = '<span class="label-text" style="padding-left:15px; margin-bottom:10px;">Strength Peaks (Est. 1RM)</span>';
+    
+    const maxes = {};
+    const filteredLogs = statsFilter === 'all' ? logs : logs.filter(log => log.routine === statsFilter);
+
+    filteredLogs.forEach(log => {
+        log.sets.forEach(s => {
+            // Brzycki: Weight / (1.0278 - (0.0278 * Reps))
+            const est1RM = s.weight / (1.0278 - (0.0278 * s.reps));
+            if (!maxes[log.exercise] || est1RM > maxes[log.exercise]) {
+                maxes[log.exercise] = est1RM;
+            }
+        });
+    });
+
+    const peakGrid = document.createElement('div');
+    peakGrid.className = 'stats-summary-grid';
+    peakGrid.style.padding = '0 15px';
+    
+    Object.entries(maxes).sort((a,b) => b[1] - a[1]).slice(0, 4).forEach(([ex, val]) => {
+        const item = document.createElement('div');
+        item.className = 'summary-item';
+        item.innerHTML = `<span class="stat-label">${ex}</span><span class="stat-big-value">${Math.round(val)}</span><span class="stat-unit">kg</span>`;
+        peakGrid.appendChild(item);
+    });
+    
+    if (Object.keys(maxes).length > 0) container.appendChild(peakGrid);
 }
 
 function calculateSummaryStats() {
