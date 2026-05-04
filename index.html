@@ -24,11 +24,10 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* Lock the base of the app to prevent shifting on scroll */
         html, body {
             height: 100%;
             width: 100%;
-            overflow: hidden; /* Prevents the whole page from moving up/down */
+            overflow: hidden;
             background: var(--bg);
         }
 
@@ -50,7 +49,6 @@
         
         .app-logo { font-weight: 900; font-size: 19px; letter-spacing: -1px; line-height: 1; }
 
-        /* Floating Pill Navbar Styling */
         .navbar { 
             position: fixed; 
             bottom: calc(25px + env(safe-area-inset-bottom));
@@ -74,16 +72,15 @@
         .nav-item svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
         .nav-item.active { color: var(--accent); }
 
-        /* Scrollable container for each screen */
         .screen { 
             flex: 1;
-            overflow-y: auto; /* Allows only the content to scroll */
+            overflow-y: auto; 
             padding: calc(75px + env(safe-area-inset-top)) 15px calc(110px + env(safe-area-inset-bottom)) 15px; 
             display: none; 
             max-width: 500px; 
             margin: auto; 
             width: 100%;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+            -webkit-overflow-scrolling: touch;
         }
 
         .stats-summary-grid {
@@ -144,16 +141,16 @@
         .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; overflow: hidden;}
         .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
         
+        /* Layout for 4 items (Stats Filter) */
         .pos-all { transform: translateX(0); width: 25% !important; }
         .pos-push { transform: translateX(100%); width: 25% !important; }
         .pos-pull { transform: translateX(200%); width: 25% !important; }
         .pos-legs { transform: translateX(300%); width: 25% !important; }
 
-        .w-push { transform: translateX(0); width: 20% !important; }
-        .w-pull { transform: translateX(100%); width: 20% !important; }
-        .w-legs { transform: translateX(200%); width: 20% !important; }
-        .w-upper { transform: translateX(300%); width: 20% !important; }
-        .w-lower { transform: translateX(400%); width: 20% !important; }
+        /* UPDATED: Layout for 3 items (Routine Toggle) */
+        .w-push { transform: translateX(0); width: 33.33% !important; }
+        .w-pull { transform: translateX(100%); width: 33.33% !important; }
+        .w-legs { transform: translateX(200%); width: 33.33% !important; }
 
         .timer-btn { background: var(--input-bg); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 8px; font-size: 11px; flex: 1; font-weight: bold; }
         
@@ -248,8 +245,6 @@
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Push', 'mainSlider', 'w-push')">PUSH</button>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Pull', 'mainSlider', 'w-pull')">PULL</button>
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Legs', 'mainSlider', 'w-legs')">LEGS</button>
-        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Upper', 'mainSlider', 'w-upper')">UPPER</button>
-        <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:9px;" onclick="setRoutine('Lower', 'mainSlider', 'w-lower')">LOWER</button>
     </div>
 
     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -305,8 +300,8 @@
         <button class="toggle-btn" style="flex:1; border:none; padding:10px; background:none; color:var(--text-sub); font-weight:800; font-size:10px;" onclick="setStatsFilter('Legs', 'pos-legs')">LEGS</button>
     </div>
     <div id="statsSummary" class="stats-summary-grid">
-        <div class="summary-item"><span class="stat-label">Total Vol</span><span id="totalVolumeAll" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
-        <div class="summary-item"><span class="stat-label">Best Session</span><span id="bestSessionVol" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
+        <div class="summary-item"><span class="stat-label">Total Volume</span><span id="totalVolumeAll" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
+        <div class="summary-item"><span class="stat-label">Total Reps</span><span id="totalRepsAll" class="stat-big-value">0</span><span class="stat-unit">reps</span></div>
         <div class="summary-item" style="grid-column: span 2;"><span class="stat-label">Avg Volume / Workout</span><span id="avgVolWorkout" class="stat-big-value">0</span><span class="stat-unit">kg</span></div>
     </div>
     <div class="workout-card" style="padding: 20px;">
@@ -384,9 +379,7 @@ let timeLeft = 0, timerRunning = false, timerInterval;
 const splitExercises = JSON.parse(localStorage.getItem('customExercises')) || {
     'Push': ['Bench Press', 'Incline DB Press', 'Lateral Raises', 'Tricep Pushdowns', 'OHP'],
     'Pull': ['Pull-Ups', 'Barbell Rows', 'Facepulls', 'DB Bicep Curls', 'Lat Pulldown'],
-    'Legs': ['Barbell Squat', 'Romanian Deadlift', 'Leg Press', 'Calf Raises', 'Leg Curls'],
-    'Upper': ['Incline Bench', 'Chest Supported Row', 'Lateral Raises', 'Dips', 'Hammer Curls'],
-    'Lower': ['Hack Squat', 'Lying Leg Curl', 'Bulgarian Split Squat', 'Seated Calf Raise']
+    'Legs': ['Barbell Squat', 'Romanian Deadlift', 'Leg Press', 'Calf Raises', 'Leg Curls']
 };
 
 function jumpToToday() {
@@ -401,7 +394,7 @@ function jumpToToday() {
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => {
         s.style.display = 'none';
-        s.scrollTop = 0; // Reset scroll position when switching
+        s.scrollTop = 0; 
     });
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(id + 'Screen').style.display = 'block';
@@ -525,7 +518,7 @@ function saveWorkout() {
         const weight = kgRepsRow.children[0].value;
         const reps = kgRepsRow.children[1].value;
         const rpeInput = inputsContainer.children[1].querySelector('input[type="range"]');
-        return { weight, reps, rpe: rpeInput.value };
+        return { weight: parseFloat(weight), reps: parseInt(reps), rpe: rpeInput.value };
     }).filter(s => s.weight && s.reps);
 
     if (sets.length === 0) return alert("Please enter weight and reps!");
@@ -651,27 +644,31 @@ function renderPerformanceStats() {
         const canvasId = `chart-${ex.replace(/\s+/g, '-')}`;
         const card = document.createElement('div');
         card.className = 'workout-card'; card.style.padding = '18px';
-        card.innerHTML = `<span class="label-text">${ex} (Volume)</span><div style="height:160px;"><canvas id="${canvasId}"></canvas></div>`;
+        card.innerHTML = `<span class="label-text">${ex} (Volume Trace)</span><div style="height:160px;"><canvas id="${canvasId}"></canvas></div>`;
         statsContainer.appendChild(card);
-        new Chart(document.getElementById(canvasId), { type: 'line', data: { labels: data.map(d => d.date), datasets: [{ label: 'Volume', data: data.map(d => d.val), borderColor: '#00ff41', tension: 0.4 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+        new Chart(document.getElementById(canvasId), { type: 'line', data: { labels: data.map(d => d.date), datasets: [{ label: 'Volume (kg)', data: data.map(d => d.val), borderColor: '#00ff41', tension: 0.4 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } } } });
     }
 }
 
 function calculateSummaryStats() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    let totalAll = 0, bestSession = 0;
+    let totalAllVol = 0, totalAllReps = 0;
     const sessions = {};
     logs.forEach(log => {
         let sessionVol = 0;
-        log.sets.forEach(s => { const vol = (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0); sessionVol += vol; totalAll += vol; });
+        log.sets.forEach(s => { 
+            const vol = (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0); 
+            sessionVol += vol; 
+            totalAllVol += vol;
+            totalAllReps += (parseInt(s.reps) || 0);
+        });
         const dateKey = new Date(log.date).toDateString();
         sessions[dateKey] = (sessions[dateKey] || 0) + sessionVol;
     });
     const vals = Object.values(sessions);
-    if (vals.length > 0) bestSession = Math.max(...vals);
-    document.getElementById('totalVolumeAll').innerText = totalAll.toLocaleString();
-    document.getElementById('bestSessionVol').innerText = bestSession.toLocaleString();
-    document.getElementById('avgVolWorkout').innerText = vals.length > 0 ? Math.round(totalAll / vals.length).toLocaleString() : 0;
+    document.getElementById('totalVolumeAll').innerText = totalAllVol.toLocaleString();
+    document.getElementById('totalRepsAll').innerText = totalAllReps.toLocaleString();
+    document.getElementById('avgVolWorkout').innerText = vals.length > 0 ? Math.round(totalAllVol / vals.length).toLocaleString() : 0;
 }
 
 function saveHeight() { localStorage.setItem('userHeight', document.getElementById('userHeightInput').value); updateHealthStats(); }
@@ -696,15 +693,15 @@ function renderWeightChart() {
     const data = JSON.parse(localStorage.getItem('bodyWeightLogs') || '[]');
     const ctx = document.getElementById('weightChart').getContext('2d');
     if(weightChart) weightChart.destroy();
-    weightChart = new Chart(ctx, { type: 'line', data: { labels: data.map(d => new Date(d.date).toLocaleDateString()), datasets: [{ label: 'Weight', data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
+    weightChart = new Chart(ctx, { type: 'line', data: { labels: data.map(d => new Date(d.date).toLocaleDateString()), datasets: [{ label: 'Bodyweight (kg)', data: data.map(d => d.value), borderColor: '#00ff41' }] }, options: { maintainAspectRatio: false } });
 }
 
 function renderSplitChart() {
     const logs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
-    const counts = { 'Push': 0, 'Pull': 0, 'Legs': 0, 'Upper': 0, 'Lower': 0 };
+    const counts = { 'Push': 0, 'Pull': 0, 'Legs': 0 };
     logs.forEach(l => { if(counts[l.routine] !== undefined) counts[l.routine]++; });
     if(pieChart) pieChart.destroy();
-    pieChart = new Chart(document.getElementById('splitPieChart'), { type: 'doughnut', data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d', '#ffcc00', '#9933ff'] }] }, options: { maintainAspectRatio: false } });
+    pieChart = new Chart(document.getElementById('splitPieChart'), { type: 'doughnut', data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#00ff41', '#0088ff', '#ff4d4d'] }] }, options: { maintainAspectRatio: false } });
 }
 
 function renderHeatmap() {
