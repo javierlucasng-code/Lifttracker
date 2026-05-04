@@ -141,13 +141,11 @@
         .toggle-container { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; z-index: 1; overflow: hidden;}
         .toggle-slider { position: absolute; top: 3px; left: 3px; height: calc(100% - 6px); background: #1a1a1a; border-radius: 7px; transition: 0.3s; z-index: -1; }
         
-        /* Layout for 4 items (Stats Filter) */
         .pos-all { transform: translateX(0); width: 25% !important; }
         .pos-push { transform: translateX(100%); width: 25% !important; }
         .pos-pull { transform: translateX(200%); width: 25% !important; }
         .pos-legs { transform: translateX(300%); width: 25% !important; }
 
-        /* UPDATED: Layout for 3 items (Routine Toggle) */
         .w-push { transform: translateX(0); width: 33.33% !important; }
         .w-pull { transform: translateX(100%); width: 33.33% !important; }
         .w-legs { transform: translateX(200%); width: 33.33% !important; }
@@ -198,7 +196,6 @@
         .rpe-table .rpe-num { font-weight: 900; color: var(--accent); width: 45px; }
         .rpe-table .rpe-desc { color: var(--text-sub); }
 
-        /* Auto-Save Indicator */
         #autoSaveStatus { font-size: 9px; color: var(--text-sub); text-align: center; margin-bottom: 5px; opacity: 0; transition: opacity 0.3s; }
     </style>
 </head>
@@ -208,7 +205,6 @@
     <div class="app-logo">ELITE<span style="color:var(--accent)">PRO</span></div>
 </nav>
 
-<!-- Full Calendar Overlay -->
 <div id="calendarOverlay" class="calendar-overlay">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: env(safe-area-inset-top);">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -229,7 +225,6 @@
     <p style="font-size: 11px; color: var(--text-sub); margin-top: 15px; text-align: center;">Dates with <span style="color:var(--accent)">underlines</span> have logged sessions.</p>
 </div>
 
-<!-- WORKOUT SCREEN -->
 <div id="workoutScreen" class="screen" style="display: block;">
     <div class="calendar-header">
         <div>
@@ -280,7 +275,6 @@
     </div>
 </div>
 
-<!-- HISTORY SCREEN -->
 <div id="historyScreen" class="screen">
     <h2 style="color: var(--accent);">History</h2>
     <div class="history-search-container">
@@ -293,7 +287,6 @@
     <div id="historyLogs"></div>
 </div>
 
-<!-- PERFORMANCE SCREEN -->
 <div id="statsScreen" class="screen">
     <h2 style="color: var(--accent);">Performance</h2>
     <div class="toggle-container" style="background: var(--card);">
@@ -316,12 +309,10 @@
         <span class="label-text">Split Distribution (Last 30 Days)</span>
         <div style="height: 180px;"><canvas id="splitPieChart"></canvas></div>
     </div>
-    <!-- NEW: Est 1RM Strength Tracker -->
     <div id="strengthList"></div>
     <div id="statsList"></div>
 </div>
 
-<!-- WEIGHT TRACKER SCREEN -->
 <div id="weightScreen" class="screen">
     <h2 style="color: var(--accent);">Weight Tracker</h2>
     <div class="workout-card" style="padding: 20px;"><div style="height: 250px;"><canvas id="weightChart"></canvas></div></div>
@@ -342,7 +333,6 @@
     </div>
 </div>
 
-<!-- SETTINGS SCREEN -->
 <div id="profileScreen" class="screen">
     <h2 style="color: var(--accent);">Settings</h2>
     
@@ -547,15 +537,17 @@ function saveWorkout() {
     alert("Session Logged!");
     document.getElementById('logTable').innerHTML = ''; 
     document.getElementById('exNote').value = '';
-    localStorage.removeItem('elite_workout_draft'); // Clear safety draft
+    localStorage.removeItem('elite_workout_draft'); 
     addSetRow(); 
     renderWeekBar();
 }
 
-// Updated Vibration logic[cite: 1]
+/** 
+ * Rest Timer Haptic Feedback Logic[cite: 1]
+ */
 function triggerVibration() {
     if (window.navigator && window.navigator.vibrate) {
-        // High-intensity double pulse[cite: 1]
+        // Double pulse vibration for iPhone haptic simulation[cite: 1]
         window.navigator.vibrate([500, 200, 500]);
     }
 }
@@ -572,7 +564,7 @@ function toggleTimer() {
                 timeLeft--; 
                 updateDisplay(); 
             } else { 
-                triggerVibration(); // Added vibration on zero[cite: 1]
+                triggerVibration(); // Executes haptics when timer hits zero[cite: 1]
                 resetTimer(); 
             } 
         }, 1000); 
