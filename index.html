@@ -378,6 +378,16 @@ const splitExercises = JSON.parse(localStorage.getItem('customExercises')) || {
     'Legs': ['Barbell Squat', 'Romanian Deadlift', 'Leg Press', 'Calf Raises', 'Leg Curls']
 };
 
+/** 
+ * Rest Timer Haptic Feedback Logic[cite: 1]
+ */
+function triggerVibration() {
+    if (window.navigator && window.navigator.vibrate) {
+        // Double pulse vibration for iPhone haptic simulation[cite: 1]
+        window.navigator.vibrate([500, 200, 500]);
+    }
+}
+
 function jumpToToday() {
     selectedDate = new Date();
     overlayDisplayDate = new Date();
@@ -532,6 +542,9 @@ function saveWorkout() {
     history.push(log);
     localStorage.setItem('workoutLogs', JSON.stringify(history));
     
+    // Trigger haptic pulse upon logging session[cite: 1]
+    triggerVibration();
+
     if(!timerRunning) toggleTimer(); else { timeLeft = 90; updateDisplay(); }
 
     alert("Session Logged!");
@@ -540,16 +553,6 @@ function saveWorkout() {
     localStorage.removeItem('elite_workout_draft'); 
     addSetRow(); 
     renderWeekBar();
-}
-
-/** 
- * Rest Timer Haptic Feedback Logic[cite: 1]
- */
-function triggerVibration() {
-    if (window.navigator && window.navigator.vibrate) {
-        // Double pulse vibration for iPhone haptic simulation[cite: 1]
-        window.navigator.vibrate([500, 200, 500]);
-    }
 }
 
 function toggleTimer() {
